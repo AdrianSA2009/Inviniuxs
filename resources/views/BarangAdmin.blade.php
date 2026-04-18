@@ -14,15 +14,8 @@
     
     <style>
         body { font-family: 'Inter', sans-serif; }
-        
-        .sidebar-nav::-webkit-scrollbar {
-            width: 0px;
-            background: transparent;
-        }
-        .sidebar-nav {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+
+        .sidebar-nav::-webkit-scrollbar { width: 0px; background: transparent; }
 
         .glass-hover:hover {
             background: rgba(255, 255, 255, 0.1);
@@ -38,62 +31,437 @@
 <body class="bg-slate-50 text-gray-800 h-screen flex overflow-hidden">
 
     <!-- Sidebar -->
-    <aside id="sidebar" class="bg-slate-900 text-white w-72 flex-shrink-0 hidden md:flex flex-col transition-all duration-300 z-30 absolute md:relative h-full shadow-2xl">
+    <aside id="sidebar-multi-level-sidebar" class="fixed top-0 left-0 z-40 w-72 h-screen transition-transform -translate-x-full md:translate-x-0 bg-slate-900 text-white flex flex-col shadow-2xl" aria-label="Sidebar">
         <div class="p-6 flex items-center gap-3 border-b border-slate-700">
             <div class="bg-blue-600 p-2 rounded-lg">
                 <i class="fas fa-laptop-code text-white"></i>
             </div>
             <h1 class="text-xl font-bold tracking-tight">Inviniux</h1>
-            <button id="closeSidebar" class="md:hidden ml-auto text-gray-400 hover:text-white">
-                <i class="fas fa-times"></i>
-            </button>
         </div>
 
         <!-- Menu Navigasi -->
-        <nav class="sidebar-nav flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all group">
+        <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto sidebar-nav">
+            <a href="{{ route('dashboardadmin') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all group">
                 <i class="fas fa-tachometer-alt w-5 text-center"></i>
                 <span class="font-medium">Dashboard</span>
             </a>
             
             <div class="text-[10px] uppercase text-slate-500 font-bold pt-6 pb-2 px-4 tracking-widest">Master Data</div>
-            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all group">
+            <a href="{{ route('kategori') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all group">
                 <i class="fas fa-tags w-5 text-center group-hover:scale-110 transition-transform"></i>
                 <span>Data Kategori</span>
             </a>
-            <a href="#" class="flex items-center gap-3 px-4 py-3 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-900/20 transition-all duration-300">
+            <a href="{{ route('brgadmin') }}" class="flex items-center gap-3 px-4 py-3 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-900/20 transition-all">
                 <i class="fas fa-box w-5 text-center group-hover:scale-110 transition-transform"></i>
                 <span>Data Barang</span>
             </a>
-            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all group">
+            <a href="{{ route('supplier') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all group">
                 <i class="fas fa-truck w-5 text-center group-hover:scale-110 transition-transform"></i>
                 <span>Data Supplier</span>
             </a>
-            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all group">
-                <i class="fas fa-box w-5 text-center group-hover:scale-110 transition-transform"></i>
+            <a href="{{ route('pengguna') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all group">
+                <i class="fas fa-users w-5 text-center"></i>
                 <span>Data Pengguna</span>
             </a>
 
             <div class="text-[10px] uppercase text-slate-500 font-bold pt-6 pb-2 px-4 tracking-widest">Transaksi</div>
-            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all group">
+            <a href="{{ route('barang-masuk') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all">
                 <i class="fas fa-arrow-down-long w-5 text-center text-green-500"></i>
                 <span>Barang Masuk</span>
             </a>
-            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all">
+            <a href="{{ route('barang-keluar') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all">
                 <i class="fas fa-arrow-up-long w-5 text-center text-orange-500"></i>
                 <span>Barang Keluar</span>
             </a>
         </nav>
-        <!-- End Menu Navigasi -->
 
-        <div class="px-4 py-1 border-t border-slate-700">
-            <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-red-600 rounded-xl text-slate-400 hover:text-white transition-all">
+        <div class="p-4 border-t border-slate-700">
+            <a href="../login.html" class="flex items-center text-slate-400 gap-3 px-4 hover:text-white transition-all">
                 <i class="fas fa-power-off w-5 text-center"></i>
                 <span class="font-medium">Logout</span>
             </a>
         </div>
+        <!-- End Menu Navigasi -->
     </aside>
     <!-- End Sidebar -->
+
+    <div class="flex-1 flex flex-col w-full md:ml-72 overflow-hidden transition-all duration-300">
+        <!-- Top Navbar -->
+        <header class="bg-white/80 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between px-8 py-4 border-b border-slate-100">
+            <div class="flex items-center gap-4">
+                <button data-drawer-target="sidebar-multi-level-sidebar" data-drawer-toggle="sidebar-multi-level-sidebar" aria-controls="sidebar-multi-level-sidebar" type="button" class="md:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors">
+                    <i class="fas fa-bars text-xl text-slate-600"></i>
+                </button>
+                <h2 class="text-xl font-bold text-slate-800 tracking-tight">Manajemen Inventaris</h2>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="hidden sm:block text-right">
+                    <p class="text-sm font-bold text-slate-900">Admin Gudang</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-200">
+                    AG
+                </div>
+            </div>
+        </header>
+        <!-- End Top Navbar -->
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-slate-50">
+            <!-- Komponen Atas Tabel -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <nav class="flex text-sm text-slate-500 mb-2">
+                        <span>Master Data</span>
+                        <span class="mx-2">/</span>
+                        <span class="text-slate-900 font-medium">Data Barang</span>
+                    </nav>
+                    <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Manajemen Inventaris</h2>
+                </div>
+                <button data-modal-target="modalExport" data-modal-toggle="modalExport" class="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 font-semibold hover:bg-slate-50 transition-all shadow-sm">
+                        <i class="fas fa-file-export"></i>
+                        <span>Export</span>
+                </button>
+            </div>
+        
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-wrap gap-4 items-center justify-between">
+                <div class="relative w-full md:w-96 group">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                        <i class="fas fa-search text-sm"></i>
+                    </span>
+                    <input type="text" 
+                        class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" 
+                        placeholder="Cari nama barang...">
+                </div>
+                
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <div class="relative flex-1 md:w-52">
+                        <select class="w-full appearance-none px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-600 text-sm font-medium cursor-pointer transition-all pr-10">
+                            <option value="">Semua Jenis</option>
+                            <option value="kulkas">Kulkas</option>
+                            <option value="kipas">Kipas</option>
+                            <option value="kompor">Kompor</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-slate-400">
+                            <i class="fas fa-chevron-down text-[10px]"></i>
+                        </div>
+                    </div>
+                    
+                    <button class="p-2.5 bg-slate-50 text-slate-500 border border-slate-200 rounded-xl hover:bg-white hover:text-blue-600 hover:border-blue-200 hover:shadow-sm transition-all active:scale-95">
+                        <i class="fas fa-sliders text-sm"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- End Komponen Atas Tabel -->
+        
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50/50 border-b border-slate-100">
+                                <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Nama Barang</th>
+                                <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Jenis Barang</th>
+                                <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Harga</th>
+                                <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Stok</th>
+                                <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr class="group hover:bg-slate-50/50 transition-all">
+                                <td class="px-6 py-4 font-bold text-slate-800">LG GN-B372SQBK 312L Inverter</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">Kulkas</span>
+                                </td>
+                                <td class="px-6 py-4 font-medium text-slate-700">Rp 7.499.900</td>
+                                <td class="px-6 py-4 text-slate-700 font-semibold">12 Unit</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <button data-modal-target="modalDetail" data-modal-toggle="modalDetail" class="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all" title="Detail">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button data-modal-target="modalEdit" data-modal-toggle="modalEdit" class="p-2 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button data-modal-target="modalDelete" data-modal-toggle="modalDelete" class="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all" title="Hapus">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        
+                            <tr class="group hover:bg-slate-50/50 transition-all">
+                                <td class="px-6 py-4 font-bold text-slate-800">Samsung Kulkas 2 Pintu RT47 465L</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-3 py-1 rounded-full bg-purple-50 text-purple-600 text-xs font-semibold">Kulkas</span>
+                                </td>
+                                <td class="px-6 py-4 font-medium text-slate-700">Rp 8.299.000</td>
+                                <td class="px-6 py-4 text-slate-700 font-semibold">3 Unit</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <button data-modal-target="modalDetail" data-modal-toggle="modalDetail" class="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all" title="Detail">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button data-modal-target="modalEdit" data-modal-toggle="modalEdit" class="p-2 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button data-modal-target="modalDelete" data-modal-toggle="modalDelete" class="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all" title="Hapus">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            
+                <div class="p-6 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <p class="text-sm text-slate-500">Menampilkan 1-10 dari 1,245 barang</p>
+                    <div class="flex items-center gap-2">
+                        <button class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm">Previous</button>
+                        <button class="w-8 h-8 bg-blue-600 text-white rounded-lg text-sm font-bold">1</button>
+                        <button class="w-8 h-8 hover:bg-slate-100 text-slate-600 rounded-lg text-sm transition-all">2</button>
+                        <button class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm">Next</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Detail -->
+            <div id="modalDetail" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                    <div id="closeModalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
+                
+                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                    <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full border border-slate-200">
+
+                        <div class="bg-white px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                            <h3 class="text-lg font-bold text-slate-800">
+                                <i class="fas fa-file-alt text-blue-600 mr-2"></i> Rincian Inventaris
+                            </h3>
+                            <button data-modal-hide="modalDetail" class="text-slate-400 hover:text-slate-600">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+                    
+                        <div class="px-6 py-6 space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Nama Barang</label>
+                                    <p id="detailNama" class="text-lg font-bold text-slate-900">LG GN-B372SQBK 312L Inverter</p>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Harga Satuan</label>
+                                    <p id="detailHarga" class="text-lg font-bold text-blue-600">Rp 7.499.900</p>
+                                </div>
+                            </div>
+                        
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Deskripsi Spesifikasi</label>
+                                <p class="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100 leading-relaxed">
+                                    Kulkas 2 pintu 312L berwarna Dark Graphite Steel, kulkas ini memiliki fitur Multi Air Flow untuk pendinginan merata, Moist Balance Crisper untuk kesegaran sayur, dan rak Tempered Glass.
+                                </p>
+                            </div>
+                        
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 text-blue-600">Daftar Unit Tersedia</label>
+                                <div class="border border-slate-100 rounded-xl overflow-hidden">
+                                    <table class="w-full text-sm text-left">
+                                        <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100">
+                                            <tr>
+                                                <th class="px-4 py-2.5 w-12 text-center">No</th>
+                                                <th class="px-4 py-2.5">Kode Barang (SKU/SN)</th>
+                                                <th class="px-4 py-2.5">Nama Barang</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-100 text-slate-700">
+                                            <tr class="hover:bg-slate-50/50">
+                                                <td class="px-4 py-3 text-center">1</td>
+                                                <td class="px-4 py-3 font-mono text-xs text-blue-600 font-bold">904KRZP12345</td>
+                                                <td class="px-4 py-3">LG GN-B372SQBK 312L Inverter</td>
+                                            </tr>
+                                            <tr class="hover:bg-slate-50/50">
+                                                <td class="px-4 py-3 text-center">2</td>
+                                                <td class="px-4 py-3 font-mono text-xs text-blue-600 font-bold">108KRAA67890</td>
+                                                <td class="px-4 py-3">LG GN-B372SQBK 312L Inverter</td>
+                                            </tr>
+                                            <tr class="hover:bg-slate-50/50">
+                                                <td class="px-4 py-3 text-center">3</td>
+                                                <td class="px-4 py-3 font-mono text-xs text-blue-600 font-bold">203KRBK00112</td>
+                                                <td class="px-4 py-3">LG GN-B372SQBK 312L Inverter</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    
+                        <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                            <button data-modal-hide="modalDetail" class="px-6 py-2 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-bold hover:bg-slate-100 transition-all">
+                                Tutup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End Modal Detail -->
+
+            <!-- Modal Delete -->
+            <div id="modalDelete" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+                <div id="closeDeleteOverlay" class="fixed inset-0 bg-red-900/20 backdrop-blur-sm transition-opacity"></div>
+
+                <div class="animate-modal relative bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl overflow-hidden text-center border-4 border-red-50">
+                    <div class="p-10">
+                        <div class="relative w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <div class="absolute inset-0 rounded-full bg-red-100 animate-ping opacity-75"></div>
+                            <i class="fas fa-trash-alt text-4xl text-red-600 relative"></i>
+                        </div>
+
+                        <h3 class="text-2xl font-black text-slate-800 mb-3">Hapus Data?</h3>
+                        <p class="text-slate-500 text-sm mb-8">Data akan dihapus secara permanen dari database.</p>
+                    
+                        <div class="space-y-3">
+                            <button id="confirmDeleteBtn" class="w-full py-4 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 hover:scale-[1.02] transition-all shadow-lg shadow-red-200">
+                                Ya, Hapus Sekarang
+                            </button>
+                            <button data-modal-hide="modalDelete" class="w-full py-4 bg-white text-slate-400 rounded-2xl font-bold hover:text-slate-600 transition-all">
+                                Cancel Action
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End Modal Delete -->
+
+            <!-- Modal Edit -->
+            <div id="modalEdit" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+                <div id="closeEditOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md transition-opacity"></div>
+
+                <div class="glass-card animate-modal relative bg-white w-full max-w-2xl rounded-[2rem] shadow-2xl overflow-hidden border border-white">
+                    <div class="h-2 bg-gradient-to-r from-amber-400 to-orange-500"></div>
+                
+                    <form id="formEditBarang">
+                        <div class="p-8">
+                            <div class="flex justify-between items-start mb-8">
+                                <div>
+                                    <span class="px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-bold uppercase tracking-widest">Update Registry</span>
+                                    <h2 class="text-3xl font-extrabold text-slate-800 mt-2 tracking-tight">Edit Data Barang</h2>
+                                </div>
+                                <button type="button" data-modal-hide="modalEdit" class="bg-slate-100 hover:bg-slate-200 text-slate-400 w-10 h-10 rounded-full transition-all flex items-center justify-center">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="md:col-span-2 space-y-1.5">
+                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nama Perangkat</label>
+                                    <input type="text" id="editNama" value="LG GN-B372SQBK 312L Inverter" 
+                                        class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none text-slate-700 font-medium">
+                                </div>
+                            
+                                <div class="space-y-1.5">
+                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Harga Satuan (Rp)</label>
+                                    <div class="relative">
+                                        <span class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">Rp</span>
+                                        <input type="number" id="editHarga" value="7499900" 
+                                            class="w-full pl-12 pr-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none text-slate-700 font-bold">
+                                    </div>
+                                </div>
+                            
+                                <div class="space-y-1.5">
+                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Kategori</label>
+                                    <select id="editKategori" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none text-slate-700 font-medium appearance-none">
+                                        <option value="kulkas">Kulkas</option>
+                                        <option value="kipas">Kipas</option>
+                                        <option value="kompor">Kompor</option>
+                                    </select>
+                                </div>
+                            
+                                <div class="md:col-span-2 space-y-1.5">
+                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Deskripsi Spesifikasi</label>
+                                    <textarea id="editDeskripsi" rows="3" 
+                                        class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none text-slate-600 text-sm leading-relaxed">Kulkas 2 pintu 312L berwarna Dark Graphite Steel, kulkas ini memiliki fitur Multi Air Flow untuk pendinginan merata, Moist Balance Crisper untuk kesegaran sayur, dan rak Tempered Glass.</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    
+                        <div class="bg-slate-50 p-6 flex justify-end gap-3">
+                            <button type="button" data-modal-hide="modalEdit" class="px-6 py-3 text-slate-400 font-bold hover:text-slate-600 transition-all">
+                                Discard
+                            </button>
+                            <button type="submit" class="px-10 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-amber-500 transition-all shadow-xl shadow-slate-200">
+                                Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- End Modal Edit -->
+
+            <!-- Modal Export -->
+            <div id="modalExport" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+                <div id="closeExportOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity"></div>
+
+                <div class="animate-export relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100 flex flex-col">
+                    <div class="bg-slate-900 px-8 py-6 text-white flex justify-between items-center">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-green-500 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/20">
+                                <i class="fas fa-file-excel text-xl"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-bold">Export to Excel</h2>
+                                <p class="text-slate-400 text-xs mt-0.5">Filter dan pilih kategori untuk diunduh</p>
+                            </div>
+                        </div>
+                        <button data-modal-hide="modalExport" class="text-slate-400 hover:text-white transition-colors">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                
+                    <form id="formExport" class="p-8">
+                        <div class="mb-6 relative group">
+                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Cari Kategori</label>
+                            <div class="relative">
+                                <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-green-500 transition-colors"></i>
+                                <input type="text" id="searchCategory" placeholder="Ketik nama kategori (ex: Kulkas, Kipas...)" 
+                                    class="w-full pl-12 pr-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all outline-none text-sm font-medium text-slate-700">
+                            </div>
+                        </div>
+
+                        <!-- Kategori Export -->
+                        <div id="categoryGrid" class="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+                            <label class="category-item relative cursor-pointer group">
+                                <input type="radio" name="exportCategory" value="all" class="peer hidden" checked>
+                                <div class="p-4 rounded-2xl border-2 border-slate-50 bg-slate-50 text-slate-600 font-bold text-[11px] transition-all peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:text-green-700 group-hover:bg-slate-100 flex items-center">
+                                    <i class="fas fa-globe-asia mr-3 text-lg opacity-50"></i> 
+                                    <span class="category-name">Semua Data</span>
+                                </div>
+                            </label>
+                        
+                            <label class="category-item relative cursor-pointer group">
+                                <input type="radio" name="exportCategory" value="kulkas" class="peer hidden">
+                                <div class="p-4 rounded-2xl border-2 border-slate-50 bg-slate-50 text-slate-600 font-bold text-[11px] transition-all peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:text-green-700 group-hover:bg-slate-100 flex items-center">
+                                    <i class="fas fa-laptop mr-3 text-lg opacity-50"></i> <span class="category-name">Kulkas</span>
+                                </div>
+                            </label>
+                        </div>
+                        <!-- End Kategori Export -->
+
+                        <div id="noResult" class="hidden py-10 text-center">
+                            <i class="fas fa-search text-slate-200 text-4xl mb-3"></i>
+                            <p class="text-slate-400 text-sm">Kategori tidak ditemukan...</p>
+                        </div>
+                    
+                        <div class="mt-8 flex gap-3">
+                            <button type="submit" class="w-full py-4 bg-green-600 text-white rounded-2xl font-bold hover:bg-green-700 shadow-lg shadow-green-200 transition-all flex items-center justify-center gap-3">
+                                <i class="fas fa-file-download"></i> Generate Excel Report
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- End Modal Export -->
+        </main>
+        <!-- End Main Content -->
+    </div>
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
@@ -103,19 +471,30 @@
             easing: 'ease-in-out'
         });
 
-        const sidebar = document.getElementById('sidebar');
-        const openSidebarBtn = document.getElementById('openSidebar');
-        const closeSidebarBtn = document.getElementById('closeSidebar');
-        const overlay = document.getElementById('sidebarOverlay');
+        // Pencarian kategori pada modal
+        document.getElementById('searchCategory').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const categories = document.querySelectorAll('.category-item');
+            const noResult = document.getElementById('noResult');
+            let hasMatch = false;
+        
+            categories.forEach(item => {
+                const categoryName = item.querySelector('.category-name').innerText.toLowerCase();
 
-        function toggleSidebar() {
-            sidebar.classList.toggle('hidden');
-            overlay.classList.toggle('hidden');
-        }
-
-        openSidebarBtn.addEventListener('click', toggleSidebar);
-        closeSidebarBtn.addEventListener('click', toggleSidebar);
-        overlay.addEventListener('click', toggleSidebar);
+                if (categoryName.includes(searchTerm)) {
+                    item.classList.remove('hidden');
+                    hasMatch = true;
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        
+            if (hasMatch) {
+                noResult.classList.add('hidden');
+            } else {
+                noResult.classList.remove('hidden');
+            }
+        });
     </script>
 </body>
 </html>
