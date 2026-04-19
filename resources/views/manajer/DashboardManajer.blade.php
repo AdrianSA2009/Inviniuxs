@@ -31,36 +31,7 @@
 <body class="bg-slate-50 text-gray-800 h-screen flex overflow-hidden">
 
     <!-- Sidebar -->
-    <aside id="sidebar-multi-level-sidebar" class="fixed top-0 left-0 z-40 w-72 h-screen transition-transform -translate-x-full md:translate-x-0 bg-slate-900 text-white flex flex-col shadow-2xl" aria-label="Sidebar">
-        <div class="p-6 flex items-center gap-3 border-b border-slate-700">
-            <div class="bg-blue-600 p-2 rounded-lg">
-                <i class="fas fa-laptop-code text-white"></i>
-            </div>
-            <h1 class="text-xl font-bold tracking-tight">Inviniux</h1>
-        </div>
-
-        <!-- Menu Navigasi -->
-        <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto sidebar-nav">
-            <a href="{{ route('dashboardmanajer') }}" class="flex items-center gap-3 px-4 py-3 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-900/20 transition-all">
-                <i class="fas fa-tachometer-alt w-5 text-center"></i>
-                <span class="font-medium">Dashboard</span>
-            </a>
-            
-            <div class="text-[10px] uppercase text-slate-500 font-bold pt-6 pb-2 px-4 tracking-widest">Master Data</div>
-            <a href="{{ route('brgmanajer') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all group">
-                <i class="fas fa-box w-5 text-center group-hover:scale-110 transition-transform"></i>
-                <span>Data Barang</span>
-            </a>
-        </nav>
-
-        <div class="p-4 border-t border-slate-700">
-            <a href="../login.html" class="flex items-center text-slate-400 gap-3 px-4 hover:text-white transition-all">
-                <i class="fas fa-power-off w-5 text-center"></i>
-                <span class="font-medium">Logout</span>
-            </a>
-        </div>
-        <!-- End Menu Navigasi -->
-    </aside>
+    @include('layout.sidebar-manajer')
     <!-- End Sidebar -->
 
     <div class="flex-1 flex flex-col w-full md:ml-72 overflow-hidden transition-all duration-300">

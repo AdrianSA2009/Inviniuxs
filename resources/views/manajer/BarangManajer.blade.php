@@ -31,58 +31,7 @@
 <body class="bg-slate-50 text-gray-800 h-screen flex overflow-hidden">
 
     <!-- Sidebar -->
-    <aside id="sidebar-multi-level-sidebar" class="fixed top-0 left-0 z-40 w-72 h-screen transition-transform -translate-x-full md:translate-x-0 bg-slate-900 text-white flex flex-col shadow-2xl" aria-label="Sidebar">
-        <div class="p-6 flex items-center gap-3 border-b border-slate-700">
-            <div class="bg-blue-600 p-2 rounded-lg">
-                <i class="fas fa-laptop-code text-white"></i>
-            </div>
-            <h1 class="text-xl font-bold tracking-tight">Inviniux</h1>
-        </div>
-
-        <!-- Menu Navigasi -->
-        <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto sidebar-nav">
-            <a href="{{ route('dashboardadmin') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all group">
-                <i class="fas fa-tachometer-alt w-5 text-center"></i>
-                <span class="font-medium">Dashboard</span>
-            </a>
-            
-            <div class="text-[10px] uppercase text-slate-500 font-bold pt-6 pb-2 px-4 tracking-widest">Master Data</div>
-            <a href="{{ route('kategori') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all group">
-                <i class="fas fa-tags w-5 text-center group-hover:scale-110 transition-transform"></i>
-                <span>Data Kategori</span>
-            </a>
-            <a href="{{ route('brgadmin') }}" class="flex items-center gap-3 px-4 py-3 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-900/20 transition-all">
-                <i class="fas fa-box w-5 text-center group-hover:scale-110 transition-transform"></i>
-                <span>Data Barang</span>
-            </a>
-            <a href="{{ route('supplier') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all group">
-                <i class="fas fa-truck w-5 text-center group-hover:scale-110 transition-transform"></i>
-                <span>Data Supplier</span>
-            </a>
-            <a href="{{ route('pengguna') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all group">
-                <i class="fas fa-users w-5 text-center"></i>
-                <span>Data Pengguna</span>
-            </a>
-
-            <div class="text-[10px] uppercase text-slate-500 font-bold pt-6 pb-2 px-4 tracking-widest">Transaksi</div>
-            <a href="{{ route('barang-masuk') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all">
-                <i class="fas fa-arrow-down-long w-5 text-center text-green-500"></i>
-                <span>Barang Masuk</span>
-            </a>
-            <a href="{{ route('barang-keluar') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all">
-                <i class="fas fa-arrow-up-long w-5 text-center text-orange-500"></i>
-                <span>Barang Keluar</span>
-            </a>
-        </nav>
-
-        <div class="p-4 border-t border-slate-700">
-            <a href="../login.html" class="flex items-center text-slate-400 gap-3 px-4 hover:text-white transition-all">
-                <i class="fas fa-power-off w-5 text-center"></i>
-                <span class="font-medium">Logout</span>
-            </a>
-        </div>
-        <!-- End Menu Navigasi -->
-    </aside>
+    @include('layout.sidebar-manajer')
     <!-- End Sidebar -->
 
     <div class="flex-1 flex flex-col w-full md:ml-72 overflow-hidden transition-all duration-300">
@@ -96,10 +45,10 @@
             </div>
             <div class="flex items-center gap-4">
                 <div class="hidden sm:block text-right">
-                    <p class="text-sm font-bold text-slate-900">Admin Gudang</p>
+                    <p class="text-sm font-bold text-slate-900">Manajer</p>
                 </div>
                 <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-200">
-                    AG
+                    M
                 </div>
             </div>
         </header>
@@ -178,12 +127,6 @@
                                         <button data-modal-target="modalDetail" data-modal-toggle="modalDetail" class="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all" title="Detail">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <button data-modal-target="modalEdit" data-modal-toggle="modalEdit" class="p-2 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button data-modal-target="modalDelete" data-modal-toggle="modalDelete" class="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all" title="Hapus">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -199,12 +142,6 @@
                                     <div class="flex items-center justify-center gap-2">
                                         <button data-modal-target="modalDetail" data-modal-toggle="modalDetail" class="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all" title="Detail">
                                             <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button data-modal-target="modalEdit" data-modal-toggle="modalEdit" class="p-2 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button data-modal-target="modalDelete" data-modal-toggle="modalDelete" class="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all" title="Hapus">
-                                            <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
                                 </td>
@@ -303,98 +240,6 @@
                 </div>
             </div>
             <!-- End Modal Detail -->
-
-            <!-- Modal Delete -->
-            <div id="modalDelete" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-                <div id="closeDeleteOverlay" class="fixed inset-0 bg-red-900/20 backdrop-blur-sm transition-opacity"></div>
-
-                <div class="animate-modal relative bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl overflow-hidden text-center border-4 border-red-50">
-                    <div class="p-10">
-                        <div class="relative w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <div class="absolute inset-0 rounded-full bg-red-100 animate-ping opacity-75"></div>
-                            <i class="fas fa-trash-alt text-4xl text-red-600 relative"></i>
-                        </div>
-
-                        <h3 class="text-2xl font-black text-slate-800 mb-3">Hapus Data?</h3>
-                        <p class="text-slate-500 text-sm mb-8">Data akan dihapus secara permanen dari database.</p>
-                    
-                        <div class="space-y-3">
-                            <button id="confirmDeleteBtn" class="w-full py-4 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 hover:scale-[1.02] transition-all shadow-lg shadow-red-200">
-                                Ya, Hapus Sekarang
-                            </button>
-                            <button data-modal-hide="modalDelete" class="w-full py-4 bg-white text-slate-400 rounded-2xl font-bold hover:text-slate-600 transition-all">
-                                Cancel Action
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- End Modal Delete -->
-
-            <!-- Modal Edit -->
-            <div id="modalEdit" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-                <div id="closeEditOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md transition-opacity"></div>
-
-                <div class="glass-card animate-modal relative bg-white w-full max-w-2xl rounded-[2rem] shadow-2xl overflow-hidden border border-white">
-                    <div class="h-2 bg-gradient-to-r from-amber-400 to-orange-500"></div>
-                
-                    <form id="formEditBarang">
-                        <div class="p-8">
-                            <div class="flex justify-between items-start mb-8">
-                                <div>
-                                    <span class="px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-bold uppercase tracking-widest">Update Registry</span>
-                                    <h2 class="text-3xl font-extrabold text-slate-800 mt-2 tracking-tight">Edit Data Barang</h2>
-                                </div>
-                                <button type="button" data-modal-hide="modalEdit" class="bg-slate-100 hover:bg-slate-200 text-slate-400 w-10 h-10 rounded-full transition-all flex items-center justify-center">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="md:col-span-2 space-y-1.5">
-                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nama Perangkat</label>
-                                    <input type="text" id="editNama" value="LG GN-B372SQBK 312L Inverter" 
-                                        class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none text-slate-700 font-medium">
-                                </div>
-                            
-                                <div class="space-y-1.5">
-                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Harga Satuan (Rp)</label>
-                                    <div class="relative">
-                                        <span class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">Rp</span>
-                                        <input type="number" id="editHarga" value="7499900" 
-                                            class="w-full pl-12 pr-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none text-slate-700 font-bold">
-                                    </div>
-                                </div>
-                            
-                                <div class="space-y-1.5">
-                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Kategori</label>
-                                    <select id="editKategori" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none text-slate-700 font-medium appearance-none">
-                                        <option value="kulkas">Kulkas</option>
-                                        <option value="kipas">Kipas</option>
-                                        <option value="kompor">Kompor</option>
-                                    </select>
-                                </div>
-                            
-                                <div class="md:col-span-2 space-y-1.5">
-                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Deskripsi Spesifikasi</label>
-                                    <textarea id="editDeskripsi" rows="3" 
-                                        class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none text-slate-600 text-sm leading-relaxed">Kulkas 2 pintu 312L berwarna Dark Graphite Steel, kulkas ini memiliki fitur Multi Air Flow untuk pendinginan merata, Moist Balance Crisper untuk kesegaran sayur, dan rak Tempered Glass.</textarea>
-                                </div>
-                            </div>
-                        </div>
-                    
-                        <div class="bg-slate-50 p-6 flex justify-end gap-3">
-                            <button type="button" data-modal-hide="modalEdit" class="px-6 py-3 text-slate-400 font-bold hover:text-slate-600 transition-all">
-                                Discard
-                            </button>
-                            <button type="submit" class="px-10 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-amber-500 transition-all shadow-xl shadow-slate-200">
-                                Save Changes
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <!-- End Modal Edit -->
 
             <!-- Modal Export -->
             <div id="modalExport" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">

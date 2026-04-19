@@ -38,64 +38,10 @@
 <body class="bg-slate-50 text-gray-800 h-screen flex overflow-hidden">
 
     <!-- Sidebar -->
-    <aside id="sidebar" class="bg-slate-900 text-white w-72 flex-shrink-0 hidden md:flex flex-col transition-all duration-300 z-30 absolute md:relative h-full shadow-2xl">
-        <div class="p-6 flex items-center gap-3 border-b border-slate-700">
-            <div class="bg-blue-600 p-2 rounded-lg">
-                <i class="fas fa-laptop-code text-white"></i>
-            </div>
-            <h1 class="text-xl font-bold tracking-tight">Inviniux</h1>
-            <button id="closeSidebar" class="md:hidden ml-auto text-gray-400 hover:text-white">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-
-        <!-- Menu Navigasi -->
-        <nav class="sidebar-nav flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-            <a href="{{ route('dashboardadmin') }}" class="flex items-center gap-3 px-4 py-3 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-900/20 transition-all duration-300">
-                <i class="fas fa-tachometer-alt w-5 text-center"></i>
-                <span class="font-medium">Dashboard</span>
-            </a>
-            
-            <div class="text-[10px] uppercase text-slate-500 font-bold pt-6 pb-2 px-4 tracking-widest">Master Data</div>
-            <a href="{{ route('kategori') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all group">
-                <i class="fas fa-tags w-5 text-center group-hover:scale-110 transition-transform"></i>
-                <span>Data Kategori</span>
-            </a>
-            <a href="{{ route('brgadmin') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all group">
-                <i class="fas fa-box w-5 text-center group-hover:scale-110 transition-transform"></i>
-                <span>Data Barang</span>
-            </a>
-            <a href="{{ route('supplier') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all group">
-                <i class="fas fa-truck w-5 text-center group-hover:scale-110 transition-transform"></i>
-                <span>Data Supplier</span>
-            </a>
-            <a href="{{ route('pengguna') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all group">
-                <i class="fas fa-users w-5 text-center group-hover:scale-110 transition-transform"></i>
-                <span>Data Pengguna</span>
-            </a>
-
-            <div class="text-[10px] uppercase text-slate-500 font-bold pt-6 pb-2 px-4 tracking-widest">Transaksi</div>
-            <a href="{{ route('barang-masuk') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all">
-                <i class="fas fa-arrow-down-long w-5 text-center text-green-500"></i>
-                <span>Barang Masuk</span>
-            </a>
-            <a href="{{ route('barang-keluar') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all">
-                <i class="fas fa-arrow-up-long w-5 text-center text-orange-500"></i>
-                <span>Barang Keluar</span>
-            </a>
-        </nav>
-        
-        <div class="p-4 border-t border-slate-700">
-            <a href="../login.html" class="flex items-center text-slate-400 gap-3 px-4 hover:text-white transition-all">
-                <i class="fas fa-power-off w-5 text-center"></i>
-                <span class="font-medium">Logout</span>
-            </a>
-        </div>
-        <!-- End Menu Navigasi -->
-    </aside>
+    @include('layout.sidebar')
     <!-- End Sidebar -->
 
-    <div class="flex-1 flex flex-col w-full overflow-hidden">
+    <div class="flex-1 flex flex-col w-full md:ml-72 overflow-hidden transition-all duration-300">
         <!-- Top Navbar -->
         <header class="bg-white/80 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between px-8 py-4 border-b border-slate-100">
             <div class="flex items-center gap-4">
@@ -212,19 +158,20 @@
             easing: 'ease-in-out'
         });
 
-        const sidebar = document.getElementById('sidebar');
-        const openSidebarBtn = document.getElementById('openSidebar');
-        const closeSidebarBtn = document.getElementById('closeSidebar');
-        const overlay = document.getElementById('sidebarOverlay');
-
-        function toggleSidebar() {
-            sidebar.classList.toggle('hidden');
-            overlay.classList.toggle('hidden');
-        }
-
-        openSidebarBtn.addEventListener('click', toggleSidebar);
-        closeSidebarBtn.addEventListener('click', toggleSidebar);
-        overlay.addEventListener('click', toggleSidebar);
+        const sidebar = document.getElementById('sidebar-multi-level-sidebar');
+        const customOverlay = document.getElementById('sidebar-overlay-custom');
+    
+        const observer = new MutationObserver(() => {
+            const isOpened = !sidebar.classList.contains('-translate-x-full');
+            
+            if (isOpened) {
+                customOverlay.classList.remove('hidden');
+            } else {
+                customOverlay.classList.add('hidden');
+            }
+        });
+    
+        observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
     </script>
 </body>
 </html>

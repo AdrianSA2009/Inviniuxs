@@ -24,58 +24,7 @@
 <body class="bg-slate-50 text-gray-800 h-screen flex overflow-hidden">
 
     <!-- Sidebar -->
-    <aside id="sidebar-multi-level-sidebar" class="fixed top-0 left-0 z-40 w-72 h-screen transition-transform -translate-x-full md:translate-x-0 bg-slate-900 text-white flex flex-col shadow-2xl" aria-label="Sidebar">
-        <div class="p-6 flex items-center gap-3 border-b border-slate-700">
-            <div class="bg-blue-600 p-2 rounded-lg">
-                <i class="fas fa-laptop-code text-white"></i>
-            </div>
-            <h1 class="text-xl font-bold tracking-tight">Inviniux</h1>
-        </div>
-
-        <!-- Menu Navigasi -->
-        <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto sidebar-nav">
-            <a href="{{ route('dashboardadmin') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all group">
-                <i class="fas fa-tachometer-alt w-5 text-center"></i>
-                <span class="font-medium">Dashboard</span>
-            </a>
-            
-            <div class="text-[10px] uppercase text-slate-500 font-bold pt-6 pb-2 px-4 tracking-widest">Master Data</div>
-            <a href="{{ route('kategori') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all group">
-                <i class="fas fa-tags w-5 text-center group-hover:scale-110 transition-transform"></i>
-                <span>Data Kategori</span>
-            </a>
-            <a href="{{ route('brgdadmin') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all group">
-                <i class="fas fa-box w-5 text-center group-hover:scale-110 transition-transform"></i>
-                <span>Data Barang</span>
-            </a>
-            <a href="{{ route('supplier') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all group">
-                <i class="fas fa-truck w-5 text-center group-hover:scale-110 transition-transform"></i>
-                <span>Data Supplier</span>
-            </a>
-            <a href="{{ route('pengguna') }}" class="flex items-center gap-3 px-4 py-3 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-900/20 transition-all">
-                <i class="fas fa-users w-5 text-center"></i>
-                <span>Data Pengguna</span>
-            </a>
-
-            <div class="text-[10px] uppercase text-slate-500 font-bold pt-6 pb-2 px-4 tracking-widest">Transaksi</div>
-            <a href="{{ route('barang-masuk') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all">
-                <i class="fas fa-arrow-down-long w-5 text-center text-green-500"></i>
-                <span>Barang Masuk</span>
-            </a>
-            <a href="{{ route('barang-keluar') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white glass-hover transition-all">
-                <i class="fas fa-arrow-up-long w-5 text-center text-orange-500"></i>
-                <span>Barang Keluar</span>
-            </a>
-        </nav>
-
-        <div class="p-4 border-t border-slate-700">
-            <a href="../login.html" class="flex items-center text-slate-400 gap-3 px-4 hover:text-white transition-all">
-                <i class="fas fa-power-off w-5 text-center"></i>
-                <span class="font-medium">Logout</span>
-            </a>
-        </div>
-        <!-- End Menu Navigasi -->
-    </aside>
+    @include('layout.sidebar')
     <!-- End Sidebar -->
 
     <div class="flex-1 flex flex-col w-full md:ml-72 overflow-hidden transition-all duration-300">
@@ -146,7 +95,7 @@
                                 <td class="px-6 py-4 font-medium text-slate-700">Manajer</td>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center justify-center gap-2">
-                                        <button onclick="openEditModal('Cindo Maulina', 'cindo.ma', 'Manajer')" class="p-2 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all">
+                                        <button data-modal-target="modalEdit" data-modal-toggle="modalEdit" class="p-2 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button data-modal-target="modalDelete" data-modal-toggle="modalDelete" class="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all">
@@ -190,11 +139,12 @@
 
     <!-- Modal Tambah -->
     <div id="modalTambahUser" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+        <div id="closeModalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
         <div class="relative p-4 w-full max-w-md max-h-full">
             <div class="relative bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100">
                 <div class="bg-slate-900 px-8 py-6 text-white flex items-center justify-between">
                     <h3 class="text-lg font-bold tracking-tight">Tambah Pengguna Baru</h3>
-                    <button type="button" class="text-slate-400 hover:text-white" data-modal-hide="modalTambahUser">
+                    <button type="button" data-modal-hide="modalTambahUser" data-modal-hide="modalTambah" class="text-slate-400 hover:text-white" data-modal-hide="modalTambahUser">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -230,7 +180,8 @@
     <!-- End Modal Tambah -->
 
     <!-- Modal Edit -->
-    <div id="modalEditUser" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div id="modalEdit" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+        <div id="closeModalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
         <div class="relative p-4 w-full max-w-md max-h-full">
             <div class="relative bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100">
                 <div class="bg-amber-500 px-8 py-6 text-white flex items-center justify-between">
@@ -238,18 +189,18 @@
                         <i class="fas fa-user-edit"></i>
                         <h3 class="text-lg font-bold tracking-tight">Edit Data Pengguna</h3>
                     </div>
-                    <button type="button" class="text-amber-100 hover:text-white" data-modal-hide="modalEditUser">
+                    <button type="button" data-modal-hide="modalEdit" class="text-amber-100 hover:text-white" data-modal-hide="modalEditUser">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
                 <form class="p-8 space-y-4">
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nama Lengkap</label>
-                        <input type="text" id="edit-nama" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all" required>
+                        <input type="text" id="edit-nama" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all" placeholder="Masukkan Nama.." required>
                     </div>
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Username</label>
-                        <input type="text" id="edit-username" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all" required>
+                        <input type="text" id="edit-username" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all" placeholder="Contoh: adrian.sa" required>
                     </div>
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Password Baru (Opsional)</label>
@@ -263,7 +214,7 @@
                         </select>
                     </div>
                     <div class="flex gap-3 pt-4">
-                        <button data-modal-hide="modalEditUser" type="button" class="flex-1 py-3 bg-slate-100 text-slate-500 rounded-xl font-bold">Batal</button>
+                        <button data-modal-hide="modalEdit" type="button" class="flex-1 py-3 bg-slate-100 text-slate-500 rounded-xl font-bold">Batal</button>
                         <button type="submit" class="flex-1 py-3 bg-amber-500 text-white rounded-xl font-bold shadow-lg shadow-amber-200">Perbarui</button>
                     </div>
                 </form>
@@ -305,16 +256,22 @@
             once: true,
             easing: 'ease-in-out'
         });
+        
+    const sidebar = document.getElementById('sidebar-multi-level-sidebar');
+    const customOverlay = document.getElementById('sidebar-overlay-custom');
 
-        function openEditModal(nama, username, jabatan) {
-            document.getElementById('edit-nama').value = nama;
-            document.getElementById('edit-username').value = username;
-            document.getElementById('edit-jabatan').value = jabatan;
-
-            // Trigger modal Flowbite secara manual
-            const modal = new Modal(document.getElementById('modalEditUser'));
-            modal.show();
+    const observer = new MutationObserver(() => {
+        const isOpened = !sidebar.classList.contains('-translate-x-full');
+        
+        if (isOpened) {
+            customOverlay.classList.remove('hidden');
+        } else {
+            customOverlay.classList.add('hidden');
         }
+    });
+
+    observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
+
     </script>
 </body>
 </html>
