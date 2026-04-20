@@ -379,16 +379,15 @@
                         <div id="categoryGrid" class="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
                             <label class="category-item relative cursor-pointer group">
                                 <input type="radio" name="exportCategory" value="all" class="peer hidden" checked>
-                                <div class="p-4 rounded-2xl border-2 border-slate-50 bg-slate-50 text-slate-600 font-bold text-[11px] transition-all peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:text-green-700 group-hover:bg-slate-100 flex items-center">
-                                    <i class="fas fa-globe-asia mr-3 text-lg opacity-50"></i> 
+                                <div class="p-4 text-center rounded-2xl border-2 border-slate-50 bg-slate-50 text-slate-600 font-bold text-[11px] transition-all peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:text-green-700 group-hover:bg-slate-100 items-center">
                                     <span class="category-name">Semua Data</span>
                                 </div>
                             </label>
                         
                             <label class="category-item relative cursor-pointer group">
                                 <input type="radio" name="exportCategory" value="kulkas" class="peer hidden">
-                                <div class="p-4 rounded-2xl border-2 border-slate-50 bg-slate-50 text-slate-600 font-bold text-[11px] transition-all peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:text-green-700 group-hover:bg-slate-100 flex items-center">
-                                    <i class="fas fa-laptop mr-3 text-lg opacity-50"></i> <span class="category-name">Kulkas</span>
+                                <div class="p-4 text-center rounded-2xl border-2 border-slate-50 bg-slate-50 text-slate-600 font-bold text-[11px] transition-all peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:text-green-700 group-hover:bg-slate-100 items-center">
+                                    <span class="category-name">Kulkas</span>
                                 </div>
                             </label>
                         </div>
