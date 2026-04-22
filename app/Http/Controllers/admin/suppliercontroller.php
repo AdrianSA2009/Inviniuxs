@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 class suppliercontroller extends Controller
 {
     public function index()
     {
-        return view('supplier');
+        return view('admin.supplier');
     }
 }
