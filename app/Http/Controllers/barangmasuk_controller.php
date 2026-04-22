@@ -11,3 +11,4 @@ class barangmasuk_controller extends Controller
         return view('barangmasuk');
     }
 }
+ 

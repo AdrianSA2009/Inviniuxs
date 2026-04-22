@@ -35,8 +35,19 @@ Route::prefix('manajer')->group(function () {
 Route::get('/barang', [databarang_controller::class, 'tampilkan']);
 Route::get('/barang1', [databarang1_controller::class, 'tampilkan']);
 Route::get('/barang2', [databarang2_controller::class, 'tampilkan']);
+Route::get('/barangmasuk', [barangmasuk_controller::class, 'index']);
+Route::get('/barangkeluar', [barangkeluar_controller::class, 'index']);
+
+Route::get('/praktikum1', function () {
+    return view('praktikum1');
+});
+
 Route::get('/gambardrian', [gambarController::class, 'index']);
 Route::get('/test', function(){
     return view('test');
 });
 Route::get('/listproduk', [listprodukController::class, 'index']);
+
+Route::get('/praktikum1', function () {
+    return view('praktikum1');
+});
