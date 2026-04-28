@@ -55,14 +55,14 @@
             {{-- Barang Masuk --}}
             <a href="{{ route('barang-masuk') }}" 
                class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {{ request()->routeIs('barang-masuk') ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white glass-hover' }}">
-                <i class="fas fa-arrow-down-long w-5 text-center {{ request()->routeIs('barang-masuk') ? 'text-white' : 'text-green-500' }}"></i>
+                <i class="fas fa-arrow-down-long w-5 text-center text-green-500 {{ request()->routeIs('barang-masuk') }}"></i>
                 <span>Barang Masuk</span>
             </a>
     
             {{-- Barang Keluar --}}
             <a href="{{ route('barang-keluar') }}" 
                class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {{ request()->routeIs('barang-keluar') ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white glass-hover' }}">
-                <i class="fas fa-arrow-up-long w-5 text-center {{ request()->routeIs('barang-keluar') ? 'text-white' : 'text-orange-500' }}"></i>
+                <i class="fas fa-arrow-up-long w-5 text-center text-orange-500 {{ request()->routeIs('barang-keluar') }}"></i>
                 <span>Barang Keluar</span>
             </a>
         </nav>

@@ -2,8 +2,8 @@
 use App\Http\Controllers\databarang_controller;
 use App\Http\Controllers\databarang1_controller;
 use App\Http\Controllers\databarang2_controller;
-use App\Http\Controllers\barangmasuk_controller;
-use App\Http\Controllers\barangkeluar_controller;
+use App\Http\Controllers\admin\BarangKeluarController;
+use App\Http\Controllers\Admin\BarangMasukController;
 use App\Http\Controllers\admin\kategoriController;
 use App\Http\Controllers\loginController;
 use App\Http\Controllers\admin\suppliercontroller;
@@ -23,8 +23,8 @@ Route::prefix('admin')->group(function () {
     Route::get('/pengguna', [PenggunaController::class, 'index'])->name('pengguna');
     Route::get('/kategori', [kategoriController::class, 'index'])->name('kategori');
     Route::get('/supplier', [suppliercontroller::class, 'index'])->name('supplier');
-    Route::get('/barangmasuk', [barangmasuk_controller::class, 'index'])->name('barang-masuk');
-    Route::get('/barangkeluar', [barangkeluar_controller::class, 'index'])->name('barang-keluar');
+    Route::get('/barangmasuk', [BarangMasukController::class, 'index'])->name('barang-masuk');
+    Route::get('/barangkeluar', [BarangKeluarController::class, 'index'])->name('barang-keluar');
 });
 
 Route::prefix('manajer')->group(function () {
