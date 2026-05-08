@@ -1,58 +1,79 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<div align="center">
+  <img src="https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel" />
+  <img src="https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP" />
+  <img src="https://img.shields.io/badge/MySQL-005C84?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL" />
+  <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML" />
+  <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS" />
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind" />
+</div>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# Aplikasi Stok Gudang Elektronik
 
-## About Laravel
+Aplikasi Stok Gudang Elektronik adalah sistem informasi berbasis web yang dirancang untuk membantu pengelolaan dan pemantauan persediaan barang di gudang elektronik. Sistem ini mempermudah pencatatan stok, barang masuk, dan barang keluar agar lebih tertata secara sistematis.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Proyek ini dikembangkan sebagai bagian dari tugas *Project Based Learning* (PBL) Program Studi Teknik Informatika, Politeknik Negeri Batam.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 👥 Tim Pengembang (PBL IF-2PC-05)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+* **Manajer Proyek:** Dwi Amalia Purnamasari, S.T., M.Cs
+* **Ketua Kelompok:** Adrian Septiaji (3312501064)
+* **Anggota 1:** Cindo Maulina (3312501070)
+* **Anggota 2:** Taqiyyah Aufaa Nabiilah (3312501084)
 
-## Learning Laravel
+## 🚀 Fitur Utama
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Sistem ini mendukung dua hak akses pengguna (Aktor), yaitu **Admin Gudang** dan **Manajer**, dengan fitur-fitur meliputi:
+* **Manajemen Data Barang:** Mencatat dan memperbarui informasi produk atau barang di gudang.
+* **Pencatatan Barang Masuk:** Mengelola data inventaris yang baru disuplai ke dalam gudang.
+* **Pencatatan Barang Keluar:** Mengelola dan melacak data barang yang dikeluarkan dari gudang.
+* **Monitoring Stok & Laporan:** Menampilkan jumlah persediaan secara *real-time* dan mencetak laporan persediaan barang. Khusus Manajer dapat melihat rincian stok dan mengunduh laporan tanpa akses manipulasi data teknis.
+* **Manajemen Supplier & Kategori:** Mengelola informasi pemasok barang dan kategori elektronik terkait.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🛠️ Teknologi yang Digunakan
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+Proyek ini dibangun menggunakan *framework* dan teknologi web modern:
+* **Framework PHP:** Laravel
+* **Frontend:** HTML, CSS, JavaScript, Tailwind CSS, Blade Templating
+* **Database:** MySQL
 
-## Agentic Development
+## ⚙️ Cara Instalasi (Local Development)
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+Ikuti langkah-langkah di bawah ini untuk menjalankan aplikasi di lingkungan *local*:
 
-```bash
-composer require laravel/boost --dev
+1.  **Clone repositori ini:**
+    ```bash
+    git clone [https://github.com/adriansa2009/pro-web.git](https://github.com/adriansa2009/pro-web.git)
+    cd pro-web
+    ```
+2.  **Instal dependensi PHP melalui Composer:**
+    ```bash
+    composer install
+    ```
+3.  **Instal dependensi NPM:**
+    ```bash
+    npm install
+    npm run build
+    ```
+4.  **Salin file `.env` dan atur konfigurasi database:**
+    ```bash
+    cp .env.example .env
+    ```
+    *(Sesuaikan kredensial `DB_DATABASE`, `DB_USERNAME`, dan `DB_PASSWORD` dengan database lokal Anda)*
+5.  **Generate Application Key:**
+    ```bash
+    php artisan key:generate
+    ```
+6.  **Jalankan migrasi database (dan *seeder* jika ada):**
+    ```bash
+    php artisan migrate --seed
+    ```
+7.  **Jalankan server lokal:**
+    ```bash
+    php artisan serve
+    ```
+8.  Buka browser dan akses aplikasi melalui `http://localhost:8000`.
 
-php artisan boost:install
-```
+## 📄 Lisensi dan Hak Cipta
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+© 2026 Jurusan Teknik Informatika, Politeknik Negeri Batam. Seluruh hak cipta dari produk dan *source code* dilindungi sebagai bagian dari luaran proyek PBL Politeknik Negeri Batam.
