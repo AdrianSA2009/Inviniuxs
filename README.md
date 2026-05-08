@@ -75,6 +75,6 @@ Ikuti langkah-langkah di bawah ini untuk menjalankan aplikasi di lingkungan *loc
     ```
 8.  Buka browser dan akses aplikasi melalui `http://localhost:8000`.
 
-## 📄 Lisensi dan Hak Cipta
+## 
 
-© 2026 Jurusan Teknik Informatika, Politeknik Negeri Batam. Seluruh hak cipta dari produk dan *source code* dilindungi sebagai bagian dari luaran proyek PBL Politeknik Negeri Batam.
+
