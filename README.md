@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind" />
 </div>
 
-# Aplikasi Stok Gudang Elektronik
+# Inviniux - Aplikasi Stok Gudang Elektronik
 
 Aplikasi Stok Gudang Elektronik adalah sistem informasi berbasis web yang dirancang untuk membantu pengelolaan dan pemantauan persediaan barang di gudang elektronik. Sistem ini mempermudah pencatatan stok, barang masuk, dan barang keluar agar lebih tertata secara sistematis.
 
