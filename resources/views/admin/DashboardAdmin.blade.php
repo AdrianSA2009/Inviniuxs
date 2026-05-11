@@ -45,7 +45,7 @@
         <!-- Top Navbar -->
         <header class="bg-white/80 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between px-8 py-4 border-b border-slate-100">
             <div class="flex items-center gap-4">
-                <button id="openSidebar" class="md:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors">
+                <button data-drawer-target="sidebar-multi-level-sidebar" data-drawer-toggle="sidebar-multi-level-sidebar" aria-controls="sidebar-multi-level-sidebar" type="button" class="md:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors">
                     <i class="fas fa-bars text-xl text-slate-600"></i>
                 </button>
                 <h2 class="text-xl font-bold text-slate-800 tracking-tight">Dashboard Overview</h2>
