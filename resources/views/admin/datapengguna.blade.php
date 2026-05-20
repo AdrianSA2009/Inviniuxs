@@ -137,7 +137,7 @@
                     </button>
                 </div>
 
-                <form action="{{ route('admin.pengguna.store') }}" method="POST" class="p-8 space-y-4">
+                <form action="{{ route('admin.pengguna.store') }}" method="POST" class="px-8 mb-8 space-y-4">
                     @csrf
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nama Lengkap</label>

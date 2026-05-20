@@ -79,7 +79,7 @@
                         <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-500 group-focus-within:text-blue-500 transition-colors">
                             <i class="fas fa-user-shield"></i>
                         </span>
-                        <input type="text" name="username" value="{{ old('username') }}" placeholder="Masukkan username" 
+                        <input type="text" name="username" value="{{ old('username') }}" placeholder="Masukkan Username" 
                             class="w-full bg-slate-800/40 border border-slate-700 text-white text-sm rounded-xl px-11 py-4 outline-none transition-all input-focus hover:border-slate-600 placeholder:text-slate-400" required>
                     </div>
                 </div>
@@ -90,7 +90,7 @@
                         <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-500 group-focus-within:text-blue-500 transition-colors">
                             <i class="fas fa-key"></i>
                         </span>
-                        <input type="password" name="password" id="passwordInput" placeholder="Masukkan password" 
+                        <input type="password" name="password" id="passwordInput" placeholder="Masukkan Password" 
                             class="w-full bg-slate-800/40 border border-slate-700 text-white text-sm rounded-xl px-11 py-4 outline-none transition-all input-focus hover:border-slate-600 placeholder:text-slate-400" required>
                         <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-500 hover:text-white transition-colors">
                             <i class="fas fa-eye" id="passwordIcon"></i>
