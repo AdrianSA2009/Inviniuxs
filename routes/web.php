@@ -20,7 +20,10 @@ route::get('/', [loginController::class, 'index'])->name('logout');
 Route::prefix('admin')->group(function () {
     Route::get('/', [DashboardAdminController::class, 'index'])->name('dashboardadmin');
     Route::get('/barang', [BarangAdminController::class, 'index'])->name('brgadmin');
-    Route::get('/pengguna', [PenggunaController::class, 'index'])->name('pengguna');
+    Route::get('/pengguna', [PenggunaController::class, 'index'])->name('admin.pengguna.index');
+    Route::post('/pengguna', [PenggunaController::class, 'store'])->name('admin.pengguna.store');
+    Route::put('/pengguna/{id}', [PenggunaController::class, 'update'])->name('admin.pengguna.update');
+    Route::delete('/pengguna/{id}', [PenggunaController::class, 'destroy'])->name('admin.pengguna.destroy');
     Route::get('/kategori', [kategoriController::class, 'index'])->name('kategori');
     Route::get('/supplier', [suppliercontroller::class, 'index'])->name('supplier');
     Route::get('/barangmasuk', [BarangMasukController::class, 'index'])->name('barang-masuk');

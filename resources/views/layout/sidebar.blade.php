@@ -44,7 +44,7 @@
             </a>
     
             {{-- Data Pengguna --}}
-            <a href="{{ route('pengguna') }}" 
+            <a href="{{ route('admin.pengguna.index') }}" 
                class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all group {{ request()->routeIs('pengguna') ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white glass-hover' }}">
                 <i class="fas fa-users w-5 text-center group-hover:scale-110 transition-transform"></i>
                 <span>Data Pengguna</span>
