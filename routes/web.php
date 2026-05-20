@@ -25,20 +25,24 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/logout', [loginController::class, 'logout'])->name('logout');
 
-    Route::prefix('admin')->group(function () {
+    Route::prefix('admin')->middleware('role:admin_gudang')->group(function () {
         Route::get('/', [DashboardAdminController::class, 'index'])->name('dashboardadmin');
         Route::get('/barang', [BarangAdminController::class, 'index'])->name('brgadmin');
-        Route::get('/pengguna', [PenggunaController::class, 'index'])->name('admin.pengguna.index');
-        Route::post('/pengguna', [PenggunaController::class, 'store'])->name('admin.pengguna.store');
-        Route::put('/pengguna/{id}', [PenggunaController::class, 'update'])->name('admin.pengguna.update');
-        Route::delete('/pengguna/{id}', [PenggunaController::class, 'destroy'])->name('admin.pengguna.destroy');
+        Route::resource('pengguna', PenggunaController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->names('admin.pengguna');
         Route::get('/kategori', [kategoriController::class, 'index'])->name('kategori');
         Route::get('/supplier', [suppliercontroller::class, 'index'])->name('supplier');
-        Route::get('/barangmasuk', [BarangMasukController::class, 'index'])->name('barang-masuk');
+        
+        Route::get('/barangmasuk', [BarangMasukController::class, 'index'])->name('barang-masuk.index');
+        Route::post('/barangmasuk', [BarangMasukController::class, 'store'])->name('barang-masuk.store');
+        Route::get('/barangmasuk/check-serial', [BarangMasukController::class, 'checkSerial'])->name('barang-masuk.check-serial');
+        Route::put('/barangmasuk/{id}', [BarangMasukController::class, 'update'])->name('barang-masuk.update');
+        Route::delete('/barangmasuk/{id}', [BarangMasukController::class, 'destroy'])->name('barang-masuk.destroy');
         Route::get('/barangkeluar', [BarangKeluarController::class, 'index'])->name('barang-keluar');
     });
 
-    Route::prefix('manajer')->group(function () {
+    Route::prefix('manajer')->middleware('role:manajer')->group(function () {
         Route::get('/', [DashboardManajerController::class, 'index'])->name('dashboardmanajer');
         Route::get('/barang', [BarangManajerController::class, 'index'])->name('brgmanajer');
     });
