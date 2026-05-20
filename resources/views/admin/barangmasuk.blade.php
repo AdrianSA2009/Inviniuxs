@@ -217,7 +217,7 @@
                                 <table class="w-full text-left">
                                     <tbody id="unitTambahBody" class="divide-y divide-slate-50">
                                         <tr id="emptyUnitRow">
-                                            <td colspan="3" class="px-6 py-6 text-left text-xs text-slate-400">
+                                            <td colspan="3" class="px-6 py-6 text-center text-xs text-slate-400">
                                                 Belum ada unit. Klik <span class="font-bold text-blue-500">Input</span> untuk menambahkan.
                                             </td>
                                         </tr>
