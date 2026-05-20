@@ -5,9 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Pengguna - Admin</title>
-    <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Fontawesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -23,12 +21,8 @@
 </head>
 <body class="bg-slate-50 text-gray-800 h-screen flex overflow-hidden">
 
-    <!-- Sidebar -->
     @include('layout.sidebar')
-    <!-- End Sidebar -->
-
     <div class="flex-1 flex flex-col w-full md:ml-72 overflow-hidden transition-all duration-300">
-        <!-- Top Navbar -->
         <header class="bg-white/80 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between px-8 py-4 border-b border-slate-100">
             <div class="flex items-center gap-4">
                 <button data-drawer-target="sidebar-multi-level-sidebar" data-drawer-toggle="sidebar-multi-level-sidebar" aria-controls="sidebar-multi-level-sidebar" type="button" class="md:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors">
@@ -45,11 +39,7 @@
                 </div>
             </div>
         </header>
-        <!-- End Top Navbar -->
-
-        <!-- Main Content -->
         <main class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-slate-50">
-            <!-- Komponen Atas -->
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <nav class="flex text-sm text-slate-500 mb-2">
@@ -59,7 +49,7 @@
                     </nav>
                     <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Manajemen Pengguna</h2>
                 </div>
-                <button data-modal-target="modalTambahUser" data-modal-toggle="modalTambahUser" class="flex items-center gap-2 px-6 py-3 bg-blue-600 rounded-xl text-white font-semibold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
+                <button data-modal-target="modalTambahUser" data-modal-toggle="modalTambahUser" id="btnTambahPengguna" class="flex items-center gap-2 px-6 py-3 bg-blue-600 rounded-xl text-white font-semibold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
                     <i class="fas fa-plus"></i>
                     <span>Tambah Pengguna</span>
                 </button>
@@ -70,67 +60,65 @@
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors">
                         <i class="fas fa-search text-sm"></i>
                     </span>
-                    <input type="text" class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" placeholder="Cari nama pengguna...">
+                    <input type="text" 
+                           id="search-input" 
+                           value="{{ request('search') }}" 
+                           class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" 
+                           placeholder="Cari nama atau username...">
                 </div>
             </div>
-            <!-- End Komponen Atas -->
             
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-50/50 border-b border-slate-100">
+                                <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">No</th>
                                 <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Nama</th>
                                 <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Username</th>
                                 <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Jabatan</th>
                                 <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
+                        <tbody id="user-table-body" class="divide-y divide-slate-100">
+                            @forelse($pengguna as $index => $user)
                             <tr class="group hover:bg-slate-50/50 transition-all">
-                                <td class="px-6 py-4 font-bold text-slate-800">Cindo Maulina</td>
-                                <td class="px-6 py-4">
-                                    <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">cindo.ma</span>
+                                <td class="px-6 py-4 font-medium text-slate-500">
+                                    {{ $pengguna->firstItem() + $index }}
                                 </td>
-                                <td class="px-6 py-4 font-medium text-slate-700">Manajer</td>
+                                <td class="px-6 py-4 font-bold text-slate-800">{{ $user->nama }}</td>
                                 <td class="px-6 py-4">
-                                    <div class="flex items-center justify-center gap-2">
-                                        <button data-modal-target="modalEdit" data-modal-toggle="modalEdit" class="p-2 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button data-modal-target="modalDelete" data-modal-toggle="modalDelete" class="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
+                                    <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">{{ $user->username }}</span>
                                 </td>
-                            </tr>
-                            <tr class="group hover:bg-slate-50/50 transition-all">
-                                <td class="px-6 py-4 font-bold text-slate-800">Adrian Spetiaji</td>
-                                <td class="px-6 py-4">
-                                    <span class="px-3 py-1 rounded-full bg-purple-50 text-purple-600 text-xs font-semibold">adrian.sa</span>
+                                <td class="px-6 py-4 font-medium text-slate-700">
+                                    {{ $user->role == 'admin_gudang' ? 'Admin Gudang' : ucfirst($user->role) }}
                                 </td>
-                                <td class="px-6 py-4 font-medium text-slate-700">Admin Gudang</td>
                                 <td class="px-6 py-4 text-center">
                                     <div class="flex items-center justify-center gap-2">
-                                        <button onclick="openEditModal('Adrian Spetiaji', 'adrian.sa', 'Admin Gudang')" class="p-2 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all">
+                                        <button onclick="openEditModal('{{ $user->id }}', '{{ $user->nama }}', '{{ $user->username }}', '{{ $user->role }}')" data-modal-target="modalEdit" data-modal-toggle="modalEdit" class="p-2 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button data-modal-target="modalDelete" data-modal-toggle="modalDelete" class="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all">
+                                        <button onclick="openDeleteModal('{{ $user->id }}')" data-modal-target="modalDelete" data-modal-toggle="modalDelete" class="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
                                 </td>
                             </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="px-6 py-10 text-center text-slate-400">
+                                        <i class="fas fa-user-slash text-2xl mb-2 block"></i>
+                                        Data pengguna tidak ditemukan.
+                                    </td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
                 <div class="p-6 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <p class="text-sm text-slate-500">Menampilkan 1-10 dari 1,245 Pengguna</p>
-                    <div class="flex items-center gap-2">
-                        <button class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm">Previous</button>
-                        <button class="w-8 h-8 bg-blue-600 text-white rounded-lg text-sm font-bold">1</button>
-                        <button class="w-8 h-8 hover:bg-slate-100 text-slate-600 rounded-lg text-sm transition-all">2</button>
-                        <button class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm">Next</button>
+                    <p class="text-sm text-slate-500">Menampilkan seluruh data pengguna</p>
+                    <div id="pagination-container">
+                        {{ $pengguna->links('pagination::tailwind') }}
                     </div>
                 </div>
             </div>
@@ -144,29 +132,37 @@
             <div class="relative bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100">
                 <div class="bg-slate-900 px-8 py-6 text-white flex items-center justify-between">
                     <h3 class="text-lg font-bold tracking-tight">Tambah Pengguna Baru</h3>
-                    <button type="button" data-modal-hide="modalTambahUser" data-modal-hide="modalTambah" class="text-slate-400 hover:text-white" data-modal-hide="modalTambahUser">
+                    <button type="button" data-modal-hide="modalTambahUser" class="text-slate-400 hover:text-white">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                <form class="p-8 space-y-4">
+
+                <form action="{{ route('admin.pengguna.store') }}" method="POST" class="px-8 mb-8 space-y-4">
+                    @csrf
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nama Lengkap</label>
-                        <input type="text" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all" placeholder="Masukkan nama..." required>
+                        <input type="text" name="nama" value="{{ old('id') ? '' : old('nama') }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all placeholder:text-slate-400" placeholder="Masukkan nama..." required>
                     </div>
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Username</label>
-                        <input type="text" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all" placeholder="Contoh: adrian.sa" required>
+                        <input type="text" name="username" value="{{ old('id') ? '' : old('username') }}" class="w-full px-4 py-3 bg-slate-50 border @if(!old('id') && $errors->has('username')) border-red-500 @else border-slate-200 @endif rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all placeholder:text-slate-400" placeholder="Contoh: adrian.sa" required>
+
+                        @if(!old('id'))
+                            @error('username')
+                                <p class="text-red-500 text-xs mt-2 font-semibold"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</p>
+                            @enderror
+                        @endif
                     </div>
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Password</label>
-                        <input type="password" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all" placeholder="••••••••" required>
+                        <input type="password" name="password" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all placeholder:text-slate-400" placeholder="••••••••" required>
                     </div>
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jabatan</label>
-                        <select class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all">
-                            <option value="" disabled selected>Pilih Role</option>
-                            <option value="Admin">Admin Gudang</option>
-                            <option value="Manajer">Manajer</option>
+                        <select name="role" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all text-slate-700" required>
+                            <option value="" disabled {{ !old('role') ? 'selected' : '' }}>Pilih Role</option>
+                            <option value="admin_gudang" {{ (!old('id') && old('role') == 'admin_gudang') ? 'selected' : '' }}>Admin Gudang</option>
+                            <option value="manajer" {{ (!old('id') && old('role') == 'manajer') ? 'selected' : '' }}>Manajer</option>
                         </select>
                     </div>
                     <div class="flex gap-3 pt-4">
@@ -189,28 +185,39 @@
                         <i class="fas fa-user-edit"></i>
                         <h3 class="text-lg font-bold tracking-tight">Edit Data Pengguna</h3>
                     </div>
-                    <button type="button" data-modal-hide="modalEdit" class="text-amber-100 hover:text-white" data-modal-hide="modalEditUser">
+                    <button type="button" data-modal-hide="modalEdit" class="text-amber-100 hover:text-white">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                <form class="p-8 space-y-4">
+                <form id="formEditUser" action="#" method="POST" class="p-8 space-y-4">
+                    @csrf
+                    @method('PUT')
+                    
+                    <input type="hidden" name="id" id="edit-id" value="{{ old('id') }}">
+                
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nama Lengkap</label>
-                        <input type="text" id="edit-nama" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all" placeholder="Masukkan Nama.." required>
+                        <input type="text" name="nama" id="edit-nama" value="{{ old('id') ? old('nama') : '' }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all placeholder:text-slate-400" placeholder="Masukkan nama..." required>
                     </div>
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Username</label>
-                        <input type="text" id="edit-username" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all" placeholder="Contoh: adrian.sa" required>
+                        <input type="text" name="username" id="edit-username" value="{{ old('id') ? old('username') : '' }}" class="w-full px-4 py-3 bg-slate-50 border @if(old('id') && $errors->has('username')) border-red-500 @else border-slate-200 @endif rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all placeholder:text-slate-400" placeholder="Masukkan username..." required>
+                        
+                        @if(old('id'))
+                            @error('username')
+                                <p class="text-red-500 text-xs mt-1 font-semibold"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</p>
+                            @enderror
+                        @endif
                     </div>
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Password Baru (Opsional)</label>
-                        <input type="password" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all" placeholder="Kosongkan jika tidak diubah">
+                        <input type="password" name="password" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all placeholder:text-slate-400" placeholder="Kosongkan jika tidak diubah">
                     </div>
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jabatan</label>
-                        <select id="edit-jabatan" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all">
-                            <option value="Admin Gudang">Admin Gudang</option>
-                            <option value="Manajer">Manajer</option>
+                        <select name="role" id="edit-role" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all text-slate-700">
+                            <option value="admin_gudang" {{ (old('id') && old('role') == 'admin_gudang') ? 'selected' : '' }}>Admin Gudang</option>
+                            <option value="manajer" {{ (old('id') && old('role') == 'manajer') ? 'selected' : '' }}>Manajer</option>
                         </select>
                     </div>
                     <div class="flex gap-3 pt-4">
@@ -235,43 +242,131 @@
                 <h3 class="text-2xl font-black text-slate-800 mb-3">Hapus Data?</h3>
                 <p class="text-slate-500 text-sm mb-8">Data akan dihapus secara permanen dari database.</p>
             
-                <div class="space-y-3">
-                    <button id="confirmDeleteBtn" class="w-full py-4 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 hover:scale-[1.02] transition-all shadow-lg shadow-red-200">
+                <form id="formDeleteUser" method="POST" class="space-y-3">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="w-full py-4 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 hover:scale-[1.02] transition-all shadow-lg shadow-red-200">
                         Ya, Hapus Sekarang
                     </button>
-                    <button data-modal-hide="modalDelete" class="w-full py-4 bg-white text-slate-400 rounded-2xl font-bold hover:text-slate-600 transition-all">
-                        Cancel Action
+                    <button type="button" data-modal-hide="modalDelete" class="w-full py-4 bg-white text-slate-400 rounded-2xl font-bold hover:text-slate-600 transition-all">
+                        Batal
                     </button>
-                </div>
+                </form>
             </div>
         </div>
     </div>
-    <!-- End Modal Delete -->
+    <!-- Modal Delete -->
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <script>
-        AOS.init({
-            duration: 800,
-            once: true,
-            easing: 'ease-in-out'
-        });
+        AOS.init({ duration: 800, once: true });
         
-    const sidebar = document.getElementById('sidebar-multi-level-sidebar');
-    const customOverlay = document.getElementById('sidebar-overlay-custom');
-
-    const observer = new MutationObserver(() => {
-        const isOpened = !sidebar.classList.contains('-translate-x-full');
-        
-        if (isOpened) {
-            customOverlay.classList.remove('hidden');
-        } else {
-            customOverlay.classList.add('hidden');
+        function openEditModal(id, nama, username, role) {
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-nama').value = nama;
+            document.getElementById('edit-username').value = username;
+            document.getElementById('edit-role').value = role.toLowerCase();
+            document.getElementById('formEditUser').action = `/admin/pengguna/${id}`;
         }
-    });
 
-    observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
+        function openDeleteModal(id) {
+            document.getElementById('formDeleteUser').action = `/admin/pengguna/${id}`;
+        }
 
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
+
+        @if(session('toast_success'))
+            Toast.fire({
+                icon: 'success',
+                title: "{{ session('toast_success') }}"
+            });
+        @endif
+
+        document.addEventListener("DOMContentLoaded", function() {
+            @if($errors->any())
+                @if(old('_method') == 'PUT')
+                    const modalEdit = document.getElementById('modalEdit');
+                    if(modalEdit) {
+                        modalEdit.classList.remove('hidden');
+                        modalEdit.classList.add('flex');
+                    }
+                    
+                    const editId = "{{ old('id') }}";
+                    if(editId) {
+                        document.getElementById('formEditUser').action = `/admin/pengguna/${editId}`;
+                    }
+                @else
+                    const modalTambah = document.getElementById('modalTambahUser');
+                    modalTambah.classList.remove('hidden');
+                    modalTambah.classList.add('flex');
+                @endif
+            @endif
+        });
+
+        document.addEventListener("DOMContentLoaded", function() {
+            let searchTimer;
+            const searchInput = document.getElementById('search-input');
+            const tableBody = document.getElementById('user-table-body');
+            const paginationContainer = document.getElementById('pagination-container');
+
+            function fetchUserData(url) {
+                tableBody.style.opacity = '0.5';
+
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+
+                    const newTableBody = doc.getElementById('user-table-body');
+                    const newPagination = doc.getElementById('pagination-container');
+
+                    if (newTableBody) tableBody.innerHTML = newTableBody.innerHTML;
+                    if (newPagination) paginationContainer.innerHTML = newPagination.innerHTML;
+
+                    tableBody.style.opacity = '1';
+                })
+                .catch(error => {
+                    console.error('Terjadi kesalahan:', error);
+                    tableBody.style.opacity = '1';
+                });
+            }
+
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimer);
+                const query = this.value;
+
+                searchTimer = setTimeout(() => {
+                    const fetchUrl = `{{ route('admin.pengguna.index') }}?search=${encodeURIComponent(query)}`;
+                    fetchUserData(fetchUrl);
+                }, 300);
+            });
+
+            document.addEventListener('click', function(e) {
+                const pageLink = e.target.closest('#pagination-container a');
+                if (pageLink) {
+                    e.preventDefault();
+                    fetchUserData(pageLink.href);
+                }
+            });
+        });
     </script>
 </body>
 </html>

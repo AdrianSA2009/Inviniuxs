@@ -58,37 +58,46 @@
 
         <!-- Bagian Kanan -->
         <div class="p-8 md:p-15 bg-slate-900 flex flex-col justify-center">
-            <div class="mb-10 text-center md:text-left">
+            <div class="mb-2 text-center md:text-left">
                 <h3 class="text-3xl font-bold text-white mb-2">Selamat Datang Kembali!</h3>
                 <p class="text-slate-400">Silahkan masuk ke akun anda.</p>
             </div>
 
-            <form action="#" class="space-y-6">
+            <form action="{{ route('login') }}" method="POST" class="space-y-6">
+                @csrf
+            
+                @if(session()->has('loginError'))
+                    <div class="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-xl text-sm flex items-center gap-3" data-aos="fade-down">
+                        <i class="fas fa-exclamation-circle text-base"></i>
+                        <span>{{ session('loginError') }}</span>
+                    </div>
+                @endif
+            
                 <div data-aos="fade-up" data-aos-delay="300">
                     <label class="block text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">Username</label>
                     <div class="relative group">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-500 group-focus-within:text-blue-500 transition-colors">
                             <i class="fas fa-user-shield"></i>
                         </span>
-                        <input type="text" placeholder="Masukkan username" 
-                            class="w-full bg-slate-800/40 border border-slate-700 text-white text-sm rounded-xl px-11 py-4 outline-none transition-all input-focus hover:border-slate-600" required>
+                        <input type="text" name="username" value="{{ old('username') }}" placeholder="Masukkan Username" 
+                            class="w-full bg-slate-800/40 border border-slate-700 text-white text-sm rounded-xl px-11 py-4 outline-none transition-all input-focus hover:border-slate-600 placeholder:text-slate-400" required>
                     </div>
                 </div>
-
+            
                 <div data-aos="fade-up" data-aos-delay="400">
                     <label class="block text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">Password</label>
                     <div class="relative group">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-500 group-focus-within:text-blue-500 transition-colors">
                             <i class="fas fa-key"></i>
                         </span>
-                        <input type="password" id="passwordInput" placeholder="••••••••" 
-                            class="w-full bg-slate-800/40 border border-slate-700 text-white text-sm rounded-xl px-11 py-4 outline-none transition-all input-focus hover:border-slate-600" required>
+                        <input type="password" name="password" id="passwordInput" placeholder="Masukkan Password" 
+                            class="w-full bg-slate-800/40 border border-slate-700 text-white text-sm rounded-xl px-11 py-4 outline-none transition-all input-focus hover:border-slate-600 placeholder:text-slate-400" required>
                         <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-500 hover:text-white transition-colors">
                             <i class="fas fa-eye" id="passwordIcon"></i>
                         </button>
                     </div>
                 </div>
-
+            
                 <div data-aos="fade-up" data-aos-delay="500">
                     <button type="submit" 
                         class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-xl shadow-blue-900/30 transition-all active:scale-[0.97] flex items-center justify-center gap-3">
