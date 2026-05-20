@@ -170,13 +170,22 @@
                 <form id="formEditUser" method="POST" class="p-8 space-y-4">
                     @csrf
                     @method('PUT')
+                    
+                    <input type="hidden" name="id" id="edit-id" value="{{ old('id') }}">
+                
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nama Lengkap</label>
-                        <input type="text" name="nama" id="edit-nama" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all" required>
+                        <input type="text" name="nama" id="edit-nama" value="{{ old('nama') }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all" required>
                     </div>
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Username</label>
-                        <input type="text" name="username" id="edit-username" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all" required>
+                        <input type="text" name="username" id="edit-username" value="{{ old('username') }}" class="w-full px-4 py-3 bg-slate-50 border @if(old('_method') == 'PUT') @error('username') border-red-500 @enderror @else border-slate-200 @endif rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all" required>
+                        
+                        @if(old('_method') == 'PUT')
+                            @error('username')
+                                <p class="text-red-500 text-xs mt-1 font-semibold">{{ $message }}</p>
+                            @enderror
+                        @endif
                     </div>
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Password Baru (Opsional)</label>
@@ -185,8 +194,8 @@
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jabatan</label>
                         <select name="role" id="edit-role" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all">
-                            <option value="admin_gudang">Admin Gudang</option>
-                            <option value="manajer">Manajer</option>
+                            <option value="admin_gudang" {{ old('role') == 'admin_gudang' ? 'selected' : '' }}>Admin Gudang</option>
+                            <option value="manajer" {{ old('role') == 'manajer' ? 'selected' : '' }}>Manajer</option>
                         </select>
                     </div>
                     <div class="flex gap-3 pt-4">
@@ -229,9 +238,10 @@
         AOS.init({ duration: 800, once: true });
         
         function openEditModal(id, nama, username, role) {
+            document.getElementById('edit-id').value = id;
             document.getElementById('edit-nama').value = nama;
             document.getElementById('edit-username').value = username;
-            document.getElementById('edit-role').value = role; 
+            document.getElementById('edit-role').value = role.toLowerCase();
             document.getElementById('formEditUser').action = `/admin/pengguna/${id}`;
         }
 
@@ -244,7 +254,11 @@
             position: 'top-end',
             showConfirmButton: false,
             timer: 3000,
-            timerProgressBar: true
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
         });
 
         @if(session('toast_success'))
@@ -254,14 +268,26 @@
             });
         @endif
 
-        @if($errors->any())
-            document.addEventListener("DOMContentLoaded", function() {
-                const btnTambah = document.querySelector('[data-modal-target="modalTambahUser"]');
-                if(btnTambah) {
-                    btnTambah.click();
-                }
-            });
-        @endif
+        document.addEventListener("DOMContentLoaded", function() {
+            @if($errors->any())
+                @if(old('_method') == 'PUT')
+                    const modalEdit = document.getElementById('modalEdit');
+                    if(modalEdit) {
+                        modalEdit.classList.remove('hidden');
+                        modalEdit.classList.add('flex');
+                    }
+                    
+                    const editId = "{{ old('id') }}";
+                    if(editId) {
+                        document.getElementById('formEditUser').action = `/admin/pengguna/${editId}`;
+                    }
+                @else
+                    const modalTambah = document.getElementById('modalTambahUser');
+                    modalTambah.classList.remove('hidden');
+                    modalTambah.classList.add('flex');
+                @endif
+            @endif
+        });
     </script>
 </body>
 </html>
