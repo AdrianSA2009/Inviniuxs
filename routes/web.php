@@ -23,8 +23,11 @@ Route::prefix('admin')->group(function () {
     Route::get('/pengguna', [PenggunaController::class, 'index'])->name('pengguna');
     Route::get('/kategori', [kategoriController::class, 'index'])->name('kategori');
     Route::get('/supplier', [suppliercontroller::class, 'index'])->name('supplier');
-    Route::get('/barangmasuk', [BarangMasukController::class, 'index'])->name('barang-masuk');
-    Route::get('/barangkeluar', [BarangKeluarController::class, 'index'])->name('barang-keluar');
+    Route::get('/barangmasuk', [BarangMasukController::class, 'index'])->name('admin.barangmasuk');
+    Route::put('/barangmasuk/{id}', [BarangMasukController::class, 'update'])->name('admin.barangmasuk.update');
+    Route::post('/barangmasuk', [BarangMasukController::class, 'store'])->name('admin.barangmasuk.store');
+    Route::delete('/barangmasuk/{id}', [BarangMasukController::class, 'destroy'])->name('admin.barangmasuk.destroy');
+    Route::get('/barangkeluar', [BarangKeluarController::class, 'index'])->name('admin.barang-keluar');
 });
 
 Route::prefix('manajer')->group(function () {
