@@ -60,7 +60,11 @@
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors">
                         <i class="fas fa-search text-sm"></i>
                     </span>
-                    <input type="text" class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" placeholder="Cari nama pengguna...">
+                    <input type="text" 
+                           id="search-input" 
+                           value="{{ request('search') }}" 
+                           class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" 
+                           placeholder="Cari nama atau username...">
                 </div>
             </div>
             
@@ -69,23 +73,25 @@
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-50/50 border-b border-slate-100">
+                                <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">No</th>
                                 <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Nama</th>
                                 <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Username</th>
                                 <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Jabatan</th>
                                 <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            @foreach($pengguna as $user)
+                        <tbody id="user-table-body" class="divide-y divide-slate-100">
+                            @forelse($pengguna as $index => $user)
                             <tr class="group hover:bg-slate-50/50 transition-all">
+                                <td class="px-6 py-4 font-medium text-slate-500">
+                                    {{ $pengguna->firstItem() + $index }}
+                                </td>
                                 <td class="px-6 py-4 font-bold text-slate-800">{{ $user->nama }}</td>
                                 <td class="px-6 py-4">
                                     <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">{{ $user->username }}</span>
                                 </td>
                                 <td class="px-6 py-4 font-medium text-slate-700">
-                                    <td class="px-6 py-4 font-medium text-slate-700">
-                                        {{ $user->role == 'admin_gudang' ? 'Admin Gudang' : ucfirst($user->role) }}
-                                    </td>
+                                    {{ $user->role == 'admin_gudang' ? 'Admin Gudang' : ucfirst($user->role) }}
                                 </td>
                                 <td class="px-6 py-4 text-center">
                                     <div class="flex items-center justify-center gap-2">
@@ -98,17 +104,28 @@
                                     </div>
                                 </td>
                             </tr>
-                            @endforeach
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="px-6 py-10 text-center text-slate-400">
+                                        <i class="fas fa-user-slash text-2xl mb-2 block"></i>
+                                        Data pengguna tidak ditemukan.
+                                    </td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
                 <div class="p-6 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
                     <p class="text-sm text-slate-500">Menampilkan seluruh data pengguna</p>
+                    <div id="pagination-container">
+                        {{ $pengguna->links('pagination::tailwind') }}
+                    </div>
                 </div>
             </div>
         </main>
     </div>
 
+    <!-- Modal Tambah -->
     <div id="modalTambahUser" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
         <div id="closeModalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
         <div class="relative p-4 w-full max-w-md max-h-full">
@@ -119,31 +136,33 @@
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                
+
                 <form action="{{ route('admin.pengguna.store') }}" method="POST" class="p-8 space-y-4">
                     @csrf
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nama Lengkap</label>
-                        <input type="text" name="nama" value="{{ old('nama') }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all" placeholder="Masukkan nama..." required>
+                        <input type="text" name="nama" value="{{ old('id') ? '' : old('nama') }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all placeholder:text-slate-400" placeholder="Masukkan nama..." required>
                     </div>
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Username</label>
-                        <input type="text" name="username" value="{{ old('username') }}" class="w-full px-4 py-3 bg-slate-50 border @error('username') border-red-500 @else border-slate-200 @enderror rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all" placeholder="Contoh: adrian.sa" required>
-                        
-                        @error('username')
-                            <p class="text-red-500 text-xs mt-2 font-semibold"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</p>
-                        @enderror
+                        <input type="text" name="username" value="{{ old('id') ? '' : old('username') }}" class="w-full px-4 py-3 bg-slate-50 border @if(!old('id') && $errors->has('username')) border-red-500 @else border-slate-200 @endif rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all placeholder:text-slate-400" placeholder="Contoh: adrian.sa" required>
+
+                        @if(!old('id'))
+                            @error('username')
+                                <p class="text-red-500 text-xs mt-2 font-semibold"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</p>
+                            @enderror
+                        @endif
                     </div>
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Password</label>
-                        <input type="password" name="password" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all" placeholder="••••••••" required>
+                        <input type="password" name="password" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all placeholder:text-slate-400" placeholder="••••••••" required>
                     </div>
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jabatan</label>
-                        <select name="role" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all" required>
-                            <option value="" disabled selected>Pilih Role</option>
-                            <option value="admin_gudang" {{ old('role') == 'admin_gudang' ? 'selected' : '' }}>Admin Gudang</option>
-                            <option value="manajer" {{ old('role') == 'manajer' ? 'selected' : '' }}>Manajer</option>
+                        <select name="role" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all text-slate-700" required>
+                            <option value="" disabled {{ !old('role') ? 'selected' : '' }}>Pilih Role</option>
+                            <option value="admin_gudang" {{ (!old('id') && old('role') == 'admin_gudang') ? 'selected' : '' }}>Admin Gudang</option>
+                            <option value="manajer" {{ (!old('id') && old('role') == 'manajer') ? 'selected' : '' }}>Manajer</option>
                         </select>
                     </div>
                     <div class="flex gap-3 pt-4">
@@ -154,6 +173,9 @@
             </div>
         </div>
     </div>
+    <!-- End Modal Tambah -->
+
+    <!-- Modal Edit -->
     <div id="modalEdit" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
         <div id="closeModalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
         <div class="relative p-4 w-full max-w-md max-h-full">
@@ -167,7 +189,7 @@
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                <form id="formEditUser" method="POST" class="p-8 space-y-4">
+                <form id="formEditUser" action="#" method="POST" class="p-8 space-y-4">
                     @csrf
                     @method('PUT')
                     
@@ -175,27 +197,27 @@
                 
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nama Lengkap</label>
-                        <input type="text" name="nama" id="edit-nama" value="{{ old('nama') }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all" required>
+                        <input type="text" name="nama" id="edit-nama" value="{{ old('id') ? old('nama') : '' }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all placeholder:text-slate-400" placeholder="Masukkan nama..." required>
                     </div>
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Username</label>
-                        <input type="text" name="username" id="edit-username" value="{{ old('username') }}" class="w-full px-4 py-3 bg-slate-50 border @if(old('_method') == 'PUT') @error('username') border-red-500 @enderror @else border-slate-200 @endif rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all" required>
+                        <input type="text" name="username" id="edit-username" value="{{ old('id') ? old('username') : '' }}" class="w-full px-4 py-3 bg-slate-50 border @if(old('id') && $errors->has('username')) border-red-500 @else border-slate-200 @endif rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all placeholder:text-slate-400" placeholder="Masukkan username..." required>
                         
-                        @if(old('_method') == 'PUT')
+                        @if(old('id'))
                             @error('username')
-                                <p class="text-red-500 text-xs mt-1 font-semibold">{{ $message }}</p>
+                                <p class="text-red-500 text-xs mt-1 font-semibold"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</p>
                             @enderror
                         @endif
                     </div>
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Password Baru (Opsional)</label>
-                        <input type="password" name="password" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all" placeholder="Kosongkan jika tidak diubah">
+                        <input type="password" name="password" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all placeholder:text-slate-400" placeholder="Kosongkan jika tidak diubah">
                     </div>
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jabatan</label>
-                        <select name="role" id="edit-role" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all">
-                            <option value="admin_gudang" {{ old('role') == 'admin_gudang' ? 'selected' : '' }}>Admin Gudang</option>
-                            <option value="manajer" {{ old('role') == 'manajer' ? 'selected' : '' }}>Manajer</option>
+                        <select name="role" id="edit-role" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all text-slate-700">
+                            <option value="admin_gudang" {{ (old('id') && old('role') == 'admin_gudang') ? 'selected' : '' }}>Admin Gudang</option>
+                            <option value="manajer" {{ (old('id') && old('role') == 'manajer') ? 'selected' : '' }}>Manajer</option>
                         </select>
                     </div>
                     <div class="flex gap-3 pt-4">
@@ -206,6 +228,9 @@
             </div>
         </div>
     </div>
+    <!-- End Modal Edit -->
+
+    <!-- Modal Delete -->
     <div id="modalDelete" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
         <div id="closeDeleteOverlay" class="fixed inset-0 bg-red-900/20 backdrop-blur-sm transition-opacity"></div>
         <div class="animate-modal relative bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl overflow-hidden text-center border-4 border-red-50">
@@ -230,6 +255,8 @@
             </div>
         </div>
     </div>
+    <!-- Modal Delete -->
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -287,6 +314,58 @@
                     modalTambah.classList.add('flex');
                 @endif
             @endif
+        });
+
+        document.addEventListener("DOMContentLoaded", function() {
+            let searchTimer;
+            const searchInput = document.getElementById('search-input');
+            const tableBody = document.getElementById('user-table-body');
+            const paginationContainer = document.getElementById('pagination-container');
+
+            function fetchUserData(url) {
+                tableBody.style.opacity = '0.5';
+
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+
+                    const newTableBody = doc.getElementById('user-table-body');
+                    const newPagination = doc.getElementById('pagination-container');
+
+                    if (newTableBody) tableBody.innerHTML = newTableBody.innerHTML;
+                    if (newPagination) paginationContainer.innerHTML = newPagination.innerHTML;
+
+                    tableBody.style.opacity = '1';
+                })
+                .catch(error => {
+                    console.error('Terjadi kesalahan:', error);
+                    tableBody.style.opacity = '1';
+                });
+            }
+
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimer);
+                const query = this.value;
+
+                searchTimer = setTimeout(() => {
+                    const fetchUrl = `{{ route('admin.pengguna.index') }}?search=${encodeURIComponent(query)}`;
+                    fetchUserData(fetchUrl);
+                }, 300);
+            });
+
+            document.addEventListener('click', function(e) {
+                const pageLink = e.target.closest('#pagination-container a');
+                if (pageLink) {
+                    e.preventDefault();
+                    fetchUserData(pageLink.href);
+                }
+            });
         });
     </script>
 </body>

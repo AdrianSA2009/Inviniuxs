@@ -45,7 +45,7 @@
     
             {{-- Data Pengguna --}}
             <a href="{{ route('admin.pengguna.index') }}" 
-               class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all group {{ request()->routeIs('pengguna') ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white glass-hover' }}">
+               class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all group {{ request()->routeIs('admin.pengguna.index') ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white glass-hover' }}">
                 <i class="fas fa-users w-5 text-center group-hover:scale-110 transition-transform"></i>
                 <span>Data Pengguna</span>
             </a>
@@ -68,10 +68,14 @@
         </nav>
 
         <div class="p-4 border-t border-slate-700">
-            <a href="{{ route('logout') }}" class="flex items-center text-slate-400 gap-3 px-4 hover:text-white transition-all">
+            <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center text-slate-400 gap-3 px-4 hover:text-white transition-all">
                 <i class="fas fa-power-off w-5 text-center"></i>
                 <span class="font-medium">Logout</span>
             </a>
+    
+            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
+                @csrf
+            </form>
         </div>
     </aside>
 

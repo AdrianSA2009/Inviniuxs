@@ -31,10 +31,14 @@
         </nav>
 
         <div class="p-4 border-t border-slate-700">
-            <a href="{{ route('logout') }}" class="flex items-center text-slate-400 gap-3 px-4 hover:text-white transition-all">
+            <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center text-slate-400 gap-3 px-4 hover:text-white transition-all">
                 <i class="fas fa-power-off w-5 text-center"></i>
                 <span class="font-medium">Logout</span>
             </a>
+    
+            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
+                @csrf
+            </form>
         </div>
     </aside>
 

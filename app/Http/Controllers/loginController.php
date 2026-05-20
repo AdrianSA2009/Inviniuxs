@@ -18,21 +18,22 @@ class loginController extends Controller
             'username' => ['required'],
             'password' => ['required'],
         ]);
-
+    
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             
             $user = Auth::user();
-
+    
+            // Menggunakan rute name agar lebih aman dan akurat sesuai web.php
             if ($user->role === 'admin_gudang') {
-                return redirect()->intended('/admin/dashboard'); 
+                return redirect()->intended(route('dashboardadmin')); 
             } elseif ($user->role === 'manajer') {
-                return redirect()->intended('/manajer/dashboard'); 
+                return redirect()->intended(route('dashboardmanajer')); 
             }
-
+    
             return redirect()->intended('/');
         }
-
+    
         return back()->with('loginError', 'Username atau password yang Anda masukkan salah.')->onlyInput('username');
     }
 
@@ -42,6 +43,6 @@ class loginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/login');
+        return redirect('/');
     }
 }
