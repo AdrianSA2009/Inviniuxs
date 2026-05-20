@@ -43,7 +43,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/barang', [BarangManajerController::class, 'index'])->name('brgmanajer');
     });
 
-});
+}); 
 
 Route::get('/barang', [databarang_controller::class, 'tampilkan']);
 Route::get('/barang1', [databarang1_controller::class, 'tampilkan']);
