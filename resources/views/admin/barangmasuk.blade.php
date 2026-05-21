@@ -50,7 +50,7 @@
                 </div>
                 <button data-modal-target="modalTambahTransaksi" data-modal-toggle="modalTambahTransaksi" class="flex items-center gap-2 px-6 py-3 bg-blue-600 rounded-xl text-white font-semibold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
                     <i class="fas fa-plus"></i>
-                    <span>Tambah Transaksi</span>
+                    <span>Tambah Barang</span>
                 </button>
             </div>
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">

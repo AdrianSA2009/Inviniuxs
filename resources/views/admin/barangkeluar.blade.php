@@ -75,7 +75,7 @@
                 </div>
                 <button data-modal-target="modalTambahTransaksi" data-modal-toggle="modalTambahTransaksi" class="flex items-center gap-2 px-6 py-3 bg-blue-600 rounded-xl text-white font-semibold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
                     <i class="fas fa-plus"></i>
-                    <span>Tambah Transaksi</span>
+                    <span>Tambah Barang</span>
                 </button>
             </div>
             <!-- End Bagian Atas -->
@@ -173,7 +173,8 @@
             <div class="relative bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden">
                 <div class="flex items-start justify-between p-6 border-b border-slate-100">
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white text-xl shadow-lg shadow-blue-200">
+                        <div class="w-12 h-12 bg-blu
+                        e-600 rounded-lg flex items-center justify-center text-white text-xl shadow-lg shadow-blue-200">
                             <i class="fas fa-plus"></i>
                         </div>
                         <div>
