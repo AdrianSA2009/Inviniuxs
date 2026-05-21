@@ -4,91 +4,282 @@ namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\BarangMasuk;
 use App\Models\Barang;
-use App\Models\Supplier;
+use App\Models\BarangMasuk;
+use App\Models\UnitBarang;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class BarangMasukController extends Controller
 {
     public function index()
     {
-        $barangMasuk = BarangMasuk::with(['barang', 'supplier'])->get();
-        
-        $barangs = Barang::all();
-        $suppliers = Supplier::all();
+        $barangMasuk = BarangMasuk::with(['barang.kategori', 'supplier', 'unitBarang'])->get();
+        $kategori = DB::table('kategori')->get();
+        $suppliers = DB::table('suppliers')->get();
 
-        return view('admin.barangmasuk', compact('barangMasuk', 'barangs', 'suppliers'));
+        return view('admin.barangmasuk', compact('barangMasuk', 'kategori', 'suppliers'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'barang_id'   => 'required',
-            'supplier_id' => 'required',
-            'jumlah'      => 'required|integer|min:1',
+        
+        $validator = Validator::make($request->all(), [
+            'kategori_id' => 'required|exists:kategori,id',
+            'nama_barang' => 'required|string|max:255',
+            'supplier_id' => 'required|exists:suppliers,id',
+            'tgl_masuk' => 'required|date',
+            'serial_number' => 'required|array|min:1',
+            'serial_number.*' => 'required|string|distinct|unique:unit_barang,serial_number',
+        ], [
+            'serial_number.unique' => 'Serial number ini sudah terdaftar!',
         ]);
 
-        $tgl_masuk = now()->toDateString(); 
+        $validator->after(function ($validator) use ($request) {
+            $serialNumbers = collect($request->input('serial_number', []))
+                ->map(fn($sn) => strtoupper(trim($sn)))
+                ->filter()
+                ->all();
 
-        
-        $isDuplicate = BarangMasuk::where('barang_id', $request->barang_id)
-                        ->where('supplier_id', $request->supplier_id)
-                        ->where('tgl_masuk', $tgl_masuk)
-                        ->exists();
+            if (count($serialNumbers) !== count(array_unique($serialNumbers))) {
+                $validator->errors()->add('serial_number', 'Terdapat serial number duplikat dalam daftar unit.');
+            }
+        });
 
-        if ($isDuplicate) {
-            return redirect()->back()
-                ->withErrors(['unique_error' => 'Data transaksi untuk barang dan supplier tersebut sudah tercatat hari ini!'])
-                ->withInput();
+        $validator->validate();
+
+        $request->merge([
+            'serial_number' => collect($request->input('serial_number', []))
+                ->map(fn($sn) => strtoupper(trim($sn)))
+                ->all(),
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $tanggal = date('Ymd', strtotime($request->tgl_masuk));
+            $hitungTransaksi = BarangMasuk::where('tgl_masuk', $request->tgl_masuk)->count() + 1;
+            $kodeTransaksi = 'IN-' . $tanggal . '-' . str_pad($hitungTransaksi, 3, '0', STR_PAD_LEFT);
+
+            // cari barang berdasarkan nama dan kategori, jika tidak ada maka buat baru dengan harga kosong (0)
+            $barang = Barang::firstOrCreate(
+                [
+                    'nama' => trim($request->nama_barang),
+                    'kategori_id' => $request->kategori_id
+                ],
+                [
+                    'harga' => 0,
+                    'deskripsi' => '-',
+                    'stok' => 0
+                ]
+            );
+
+            $jumlahUnit = count($request->serial_number);
+
+            $barangMasuk = BarangMasuk::create([
+                'kode_transaksi' => $kodeTransaksi,
+                'barang_id' => $barang->id,
+                'supplier_id' => $request->supplier_id,
+                'karyawan_id' => Auth::id(),
+                'tgl_masuk' => $request->tgl_masuk,
+                'jumlah' => $jumlahUnit,
+            ]);
+
+            foreach ($request->serial_number as $serial) {
+                UnitBarang::create([
+                    'barang_id' => $barang->id,
+                    'barang_masuk_id' => $barangMasuk->id,
+                    'serial_number' => strtoupper(trim($serial)),
+                    'status' => 'tersedia',
+                ]);
+            }
+
+            $barang->stok += $jumlahUnit;
+            $barang->save();
+
+            DB::commit();
+
+            return redirect()->route('barang-masuk.index')
+                ->with('toast_success', 'Transaksi barang masuk berhasil disimpan.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'gagal menyimpan transaksi: ' . $e->getMessage());
+        }
+    }
+
+    public function checkSerial(Request $request)
+    {
+        $serial = strtoupper(trim($request->query('serial_number', '')));
+        $exceptId = $request->query('except_id');
+        $exists = false;
+
+        if ($serial !== '') {
+            $query = UnitBarang::where('serial_number', $serial);
+            if ($exceptId) {
+                $query->where('id', '!=', $exceptId);
+            }
+            $exists = $query->exists();
         }
 
-        BarangMasuk::create([
-            'barang_id'   => $request->barang_id,
-            'supplier_id' => $request->supplier_id,
-            'karyawan_id' => auth()->user()->id ?? 1, // Mengambil ID admin yang login atau default ke 1
-            'tgl_masuk'   => $tgl_masuk,
-            'jumlah'      => $request->jumlah
-        ]);
-
-        return redirect()->route('admin.barangmasuk')->with('toast_success', 'Transaksi barang masuk berhasil ditambahkan!');
+        return response()->json(['exists' => $exists]);
     }
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'barang_id'   => 'required',
-            'supplier_id' => 'required',
-            'jumlah'      => 'required|integer|min:1',
+        $barangMasuk = BarangMasuk::with('unitBarang', 'barang')->findOrFail($id);
+
+        $validator = Validator::make($request->all(), [
+            'kategori_id' => 'required|exists:kategori,id',
+            'nama_barang' => 'required|string|max:255',
+            'supplier_id' => 'required|exists:suppliers,id',
+            'tgl_masuk' => 'required|date',
+            'serial_number' => 'required|array|min:1',
+            'serial_number.*' => 'required|string',
+            'unit_id' => 'required|array|min:1',
+            'unit_id.*' => 'nullable|integer',
         ]);
 
-        $barangMasuk = BarangMasuk::findOrFail($id);
+        $validator->after(function ($validator) use ($request, $barangMasuk) {
+            $serialNumbers = collect($request->input('serial_number', []))
+                ->map(fn($sn) => strtoupper(trim($sn)))
+                ->filter()
+                ->all();
 
-        $isDuplicate = BarangMasuk::where('barang_id', $request->barang_id)
-                        ->where('supplier_id', $request->supplier_id)
-                        ->where('tgl_masuk', $barangMasuk->tgl_masuk)
-                        ->where('id', '!=', $id)
-                        ->exists();
+            if (count($serialNumbers) !== count(array_unique($serialNumbers))) {
+                $validator->errors()->add('serial_number', 'Terdapat serial number duplikat dalam daftar unit.');
+            }
 
-        if ($isDuplicate) {
-            return redirect()->back()
-                ->withErrors(['unique_error' => 'Perubahan gagal! Kombinasi data barang masuk tersebut sudah ada di sistem.'])
-                ->withInput();
+            $unitIds = collect($request->input('unit_id', []))->map(fn($id) => $id === null || $id === '' ? null : (int) $id)->all();
+            foreach ($serialNumbers as $index => $serial) {
+                $exceptId = $unitIds[$index] ?? null;
+                $exists = UnitBarang::where('serial_number', $serial)
+                    ->when($exceptId, fn($query) => $query->where('id', '!=', $exceptId))
+                    ->exists();
+
+                if ($exists) {
+                    $validator->errors()->add('serial_number', 'Serial number "' . $serial . '" sudah terdaftar di transaksi lain.');
+                    break;
+                }
+            }
+        });
+
+        $validator->validate();
+
+        $serialNumbers = collect($request->input('serial_number', []))
+            ->map(fn($sn) => strtoupper(trim($sn)))
+            ->filter()
+            ->values()
+            ->all();
+
+        $unitIds = collect($request->input('unit_id', []))
+            ->map(fn($id) => $id === null || $id === '' ? null : (int) $id)
+            ->all();
+
+        DB::beginTransaction();
+
+        try {
+            $barang = Barang::firstOrCreate(
+                [
+                    'nama' => trim($request->nama_barang),
+                    'kategori_id' => $request->kategori_id,
+                ],
+                [
+                    'harga' => 0,
+                    'deskripsi' => '-',
+                    'stok' => 0,
+                ]
+            );
+
+            $oldBarang = $barangMasuk->barang;
+            $oldJumlah = $barangMasuk->jumlah;
+            $newJumlah = count($serialNumbers);
+
+            $barangMasuk->barang_id = $barang->id;
+            $barangMasuk->supplier_id = $request->supplier_id;
+            $barangMasuk->tgl_masuk = $request->tgl_masuk;
+            $barangMasuk->jumlah = $newJumlah;
+            $barangMasuk->save();
+
+            $existingUnits = $barangMasuk->unitBarang->keyBy('id');
+            $processedIds = [];
+
+            foreach ($serialNumbers as $index => $serial) {
+                $unitId = $unitIds[$index] ?? null;
+                if ($unitId && $existingUnits->has($unitId)) {
+                    $unit = $existingUnits->get($unitId);
+                    $unit->serial_number = $serial;
+                    $unit->barang_id = $barang->id;
+                    $unit->save();
+                    $processedIds[] = $unitId;
+                } else {
+                    UnitBarang::create([
+                        'barang_id' => $barang->id,
+                        'barang_masuk_id' => $barangMasuk->id,
+                        'serial_number' => $serial,
+                        'status' => 'tersedia',
+                    ]);
+                }
+            }
+
+            $toDelete = $existingUnits->filter(fn($unit) => !in_array($unit->id, $processedIds));
+            foreach ($toDelete as $unit) {
+                $unit->delete();
+            }
+
+            if ($oldBarang && $oldBarang->id === $barang->id) {
+                $delta = $newJumlah - $oldJumlah;
+                if ($delta !== 0) {
+                    $oldBarang->stok += $delta;
+                    $oldBarang->save();
+                }
+            } else {
+                if ($oldBarang) {
+                    $oldBarang->stok -= $oldJumlah;
+                    $oldBarang->save();
+                }
+                $barang->stok += $newJumlah;
+                $barang->save();
+            }
+
+            DB::commit();
+
+            return redirect()->route('barang-masuk.index')
+                ->with('toast_success', 'Transaksi barang masuk berhasil diperbarui.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'gagal memperbarui transaksi: ' . $e->getMessage());
         }
-
-        $barangMasuk->update([
-            'barang_id'   => $request->barang_id,
-            'supplier_id' => $request->supplier_id,
-            'jumlah'      => $request->jumlah
-        ]);
-
-        return redirect()->route('admin.barangmasuk')->with('toast_success', 'Data transaksi berhasil diperbarui!');
     }
 
     public function destroy($id)
     {
         $barangMasuk = BarangMasuk::findOrFail($id);
-        $barangMasuk->delete();
 
-        return redirect()->route('admin.barangmasuk')->with('toast_success', 'Data transaksi berhasil dihapus!');
+        DB::beginTransaction();
+
+        try {
+            $barang = $barangMasuk->barang;
+            $jumlahUnit = $barangMasuk->jumlah;
+
+            UnitBarang::where('barang_masuk_id', $id)->delete();
+            $barangMasuk->delete();
+
+            if ($barang) {
+                $barang->stok -= $jumlahUnit;
+                $barang->save();
+            }
+
+            DB::commit();
+
+            return redirect()->route('barang-masuk.index')
+                ->with('toast_success', 'Transaksi barang masuk berhasil dihapus.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'gagal menghapus transaksi: ' . $e->getMessage());
+        }
     }
 }
