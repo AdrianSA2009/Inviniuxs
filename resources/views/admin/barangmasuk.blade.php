@@ -20,7 +20,6 @@
 <body class="bg-slate-50 text-gray-800 h-screen flex overflow-hidden">
 
     @include('layout.sidebar')
-
     <div class="flex-1 flex flex-col w-full md:ml-72 overflow-hidden transition-all duration-300">
         <header class="bg-white/80 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between px-8 py-4 border-b border-slate-100">
             <div class="flex items-center gap-4">
@@ -51,10 +50,9 @@
                 </div>
                 <button data-modal-target="modalTambahTransaksi" data-modal-toggle="modalTambahTransaksi" class="flex items-center gap-2 px-6 py-3 bg-blue-600 rounded-xl text-white font-semibold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
                     <i class="fas fa-plus"></i>
-                    <span>Tambah Transaksi</span>
+                    <span>Tambah Barang</span>
                 </button>
             </div>
-
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
                 <div class="relative w-full group">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors">
@@ -63,7 +61,6 @@
                     <input type="text" class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" placeholder="Cari nama barang...">
                 </div>
             </div>
-
             <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
@@ -142,9 +139,8 @@
         </main>
     </div>
 
-    <!-- Modal Tambah -->
     <div id="modalTambahTransaksi" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div id="closeModalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" data-modal-hide="modalTambahTransaksi"></div>
         <div class="relative p-4 w-full max-w-2xl max-h-full">
             <div class="relative bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden">
                 <div class="flex items-start justify-between p-6 border-b border-slate-100">
@@ -365,109 +361,109 @@
     <!-- End Modal Detail -->
 
     <!-- Modal Edit -->
-    <div id="modalEdit" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full transition-all duration-300">
-        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
-        <div class="relative p-4 w-full max-w-2xl max-h-full">
-            <div class="relative bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden">
-                <div class="flex items-start justify-between p-6 border-b border-slate-100">
-                    <div class="flex items-center gap-4">
-                        <div class="w-11 h-11 bg-amber-100 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-edit text-amber-600 text-lg"></i>
+<div id="modalEdit" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 justify-center items-center w-full h-full transition-all duration-300">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="hideModal('modalEdit')"></div>
+    
+    <div class="relative p-4 w-full max-w-2xl max-h-full z-10 my-auto">
+        <div class="relative bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden">
+            
+            <div class="flex items-start justify-between p-6 border-b border-slate-100">
+                <div class="flex items-center gap-4">
+                    <div class="w-11 h-11 bg-amber-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-edit text-amber-600 text-lg"></i>
+                    </div>
+                    <div>
+                        <span class="px-2.5 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-bold uppercase tracking-widest">Update Registry</span>
+                        <h2 id="edit-kode-label" class="text-xl font-extrabold text-slate-800 mt-1 tracking-tight">Edit Barang Masuk</h2>
+                    </div>
+                </div>
+                <button type="button" onclick="hideModal('modalEdit')" class="bg-slate-100 hover:bg-slate-200 text-slate-400 w-10 h-10 rounded-full transition-all flex items-center justify-center">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="formEdit" method="POST" class="px-8 py-6">
+                @csrf
+                @method('PUT')
+                
+                <div class="space-y-6 mb-6">
+                    <div>
+                        <label class="block mb-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tanggal Masuk</label>
+                        <input type="date" name="tgl_masuk" id="edit-tgl"
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all text-slate-700" required>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block mb-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Kategori Barang</label>
+                            <select name="kategori_id" id="edit-kategori"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all text-slate-700" required>
+                                <option value="" disabled>Pilih kategori barang</option>
+                                @foreach($kategori as $kat)
+                                    <option value="{{ $kat->id }}">{{ $kat->nama }}</option>
+                                @endforeach
+                            </select>
                         </div>
                         <div>
-                            <span class="px-2.5 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-bold uppercase tracking-widest">Update Registry</span>
-                            <h2 id="edit-kode-label" class="text-xl font-extrabold text-slate-800 mt-1 tracking-tight">Edit Barang Masuk</h2>
+                            <label class="block mb-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Supplier</label>
+                            <select name="supplier_id" id="edit-supplier"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all text-slate-700" required>
+                                <option value="" disabled>Pilih supplier</option>
+                                @foreach($suppliers as $sup)
+                                    <option value="{{ $sup->id }}">{{ $sup->nama }}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
-                    <button type="button" onclick="hideModal('modalEdit')" class="bg-slate-100 hover:bg-slate-200 text-slate-400 w-10 h-10 rounded-full transition-all flex items-center justify-center">
-                        <i class="fas fa-times"></i>
-                    </button>
                 </div>
 
-                <form id="formEdit" method="POST" class="px-8 py-6">
-                    @csrf
-                    @method('PUT')
-                    <div class="space-y-6 mb-6">
+                <div id="hidden-edit-fields-container"></div>
 
-                        <div>
-                            <label class="block mb-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tanggal Masuk</label>
-                            <input type="date" name="tgl_masuk" id="edit-tgl"
-                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all text-slate-700" required>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block mb-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Kategori Barang</label>
-                                <select name="kategori_id" id="edit-kategori"
-                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all text-slate-700" required>
-                                    <option value="" disabled>Pilih kategori barang</option>
-                                    @foreach($kategori as $kat)
-                                        <option value="{{ $kat->id }}">{{ $kat->nama }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block mb-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Supplier</label>
-                                <select name="supplier_id" id="edit-supplier"
-                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all text-slate-700" required>
-                                    <option value="" disabled>Pilih supplier</option>
-                                    @foreach($suppliers as $sup)
-                                        <option value="{{ $sup->id }}">{{ $sup->nama }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
+                <div class="space-y-4 mt-6">
+                    <div class="flex justify-between items-center px-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Daftar Unit</label>
+                        <button type="button" id="btnOpenEditInputUnit"
+                            class="px-4 py-1.5 bg-blue-600 text-white text-[10px] font-black rounded-lg shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all uppercase tracking-wider">
+                            Input
+                        </button>
                     </div>
 
-                    <div id="hidden-edit-fields-container"></div>
-
-                    <div class="space-y-4 mt-6">
-                        <div class="flex justify-between items-center px-1">
-                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Daftar Unit</label>
-                            <button type="button" id="btnOpenEditInputUnit"
-                                class="px-4 py-1.5 bg-blue-600 text-white text-[10px] font-black rounded-lg shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all uppercase tracking-wider">
-                                Input
-                            </button>
-                        </div>
-
-                        <div class="border border-slate-100 rounded-[2rem] overflow-hidden shadow-sm bg-white">
+                    <div class="border border-slate-100 rounded-[2rem] overflow-hidden shadow-sm bg-white">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50/80 border-b border-slate-100">
+                                <tr>
+                                    <th class="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-left w-16">No</th>
+                                    <th class="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-left">Serial Number</th>
+                                    <th class="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-left">Aksi</th>
+                                </tr>
+                            </thead>
+                        </table>
+                        <div class="overflow-y-auto" style="max-height: 80px;">
                             <table class="w-full text-left">
-                                <thead class="bg-slate-50/80 border-b border-slate-100">
-                                    <tr>
-                                        <th class="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-left w-16">No</th>
-                                        <th class="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-left">Serial Number</th>
-                                        <th class="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-left">Aksi</th>
+                                <tbody id="unitEditBody" class="divide-y divide-slate-50">
+                                    <tr id="emptyEditUnitRow">
+                                        <td colspan="3" class="px-6 py-6 text-left text-xs text-slate-400">
+                                            Belum ada unit. Klik <span class="font-bold text-blue-500">Input</span> untuk menambahkan.
+                                        </td>
                                     </tr>
-                                </thead>
+                                </tbody>
                             </table>
-                            <div class="overflow-y-auto" style="max-height: 80px;">
-                                <table class="w-full text-left">
-                                    <tbody id="unitEditBody" class="divide-y divide-slate-50">
-                                        <tr id="emptyEditUnitRow">
-                                            <td colspan="3" class="px-6 py-6 text-left text-xs text-slate-400">
-                                                Belum ada unit. Klik <span class="font-bold text-blue-500">Input</span> untuk menambahkan.
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-100 mt-6">
-                        <button type="button" onclick="hideModal('modalEdit')" class="px-8 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-all text-xs uppercase tracking-widest">
-                            Batal
-                        </button>
-                        <button type="submit" class="px-8 py-2.5 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 transition-all text-xs uppercase tracking-widest shadow-lg shadow-amber-100">
-                            Simpan Perubahan
-                        </button>
-                    </div>
-                </form>
+                <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-100 mt-6">
+                    <button type="button" onclick="hideModal('modalEdit')" class="px-8 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-all text-xs uppercase tracking-widest">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-8 py-2.5 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 transition-all text-xs uppercase tracking-widest shadow-lg shadow-amber-100">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
             </div>
-        </div>
     </div>
-    <!-- End Modal Edit -->
-
+</div>
     <!-- Modal Delete -->
     <div id="modalDelete" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
         <div class="fixed inset-0 bg-red-900/20 backdrop-blur-sm transition-opacity"></div>
@@ -496,7 +492,30 @@
             </div>
         </div>
     </div>
-    <!-- End Modal Delete -->
+
+    @if(session('toast_success'))
+        <div id="toast-success" class="fixed top-5 right-5 flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-xl shadow-2xl dark:text-gray-400 dark:bg-gray-800 transition-opacity duration-500 z-50 border border-slate-100" role="alert">
+            <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg">
+                <i class="fas fa-check text-sm"></i>
+                <span class="sr-only">Check icon</span>
+            </div>
+            <div class="ms-3 text-sm font-semibold text-slate-700">{{ session('toast_success') }}</div>
+            <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8" onclick="document.getElementById('toast-success').remove()">
+                <span class="sr-only">Close</span>
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <script>
+            setTimeout(function() {
+                let toast = document.getElementById('toast-success');
+                if (toast) {
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 500);
+                }
+            }, 3500);
+        </script>
+    @endif
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
