@@ -75,7 +75,7 @@
                         <thead>
                             <tr class="bg-slate-50/50 border-b border-slate-100">
                                 <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">No</th>
-                                <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Nama</th>
+                                <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Nama Lengkap</th>
                                 <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Username</th>
                                 <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Jabatan</th>
                                 <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400 text-center">Aksi</th>

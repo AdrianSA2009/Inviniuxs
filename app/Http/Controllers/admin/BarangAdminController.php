@@ -4,14 +4,20 @@ namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use App\Models\Barang;
+use App\Models\Kategori;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
 class BarangAdminController extends Controller
 {
+    // Tampilkan daftar barang
     public function index()
     {
-        // mengambil seluruh data barang dan mengelompokkannya berdasarkan nama item
-        $barang = Barang::with('kategori')
+        $barang = Barang::with(['kategori', 'unitBarang'])
             ->get()
             ->groupBy(function($item) {
                 return strtolower(trim($item->nama));
@@ -25,9 +31,213 @@ class BarangAdminController extends Controller
                     'harga' => $firstItem->harga,
                     'deskripsi' => $firstItem->deskripsi,
                     'stok' => $group->sum('stok'),
+                    'unitBarang' => $group->flatMap->unitBarang->unique('id')->values(),
                 ];
+            })
+            ->filter(function ($item) {
+                return $item->stok > 0;
+            })
+            ->values();
+
+        $categories = Kategori::orderBy('nama')->get();
+
+        return view('admin.BarangAdmin', compact('barang', 'categories'));
+    }
+
+    // Export Barang ke Excel
+    public function export(Request $request)
+    {
+        $barangId = $request->input('barang_id');
+        $category = $request->input('exportCategory', 'all');
+        
+        $query = Barang::with(['kategori', 'unitBarang'])->whereHas('unitBarang');
+
+        if ($barangId) {
+            $query->where('id', $barangId);
+            $includeCategory = true;
+        } else {
+            // Export multiple barang by category
+            if ($category !== 'all') {
+                $query->where('kategori_id', $category);
+            }
+            $includeCategory = $category === 'all';
+        }
+
+        $barang = $query->where('stok', '>', 0)->get();
+        
+        if ($barang->isEmpty()) {
+            abort(404, 'Data barang tidak ditemukan');
+        }
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $headers = ['No', 'Serial Number', 'Nama Barang', 'Harga'];
+        if ($includeCategory) {
+            $headers[] = 'Kategori';
+        }
+
+        $colIndex = 1;
+        foreach ($headers as $h) {
+            $cell = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex) . '1';
+            $sheet->setCellValue($cell, $h);
+            $colIndex++;
+        }
+
+        // StyleHeader
+        $lastCol = $sheet->getHighestColumn();
+        $headerRange = 'A1:' . $lastCol . '1';
+        $sheet->getStyle($headerRange)->getFill()->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFEEEEEE');
+        $sheet->getStyle($headerRange)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle($headerRange)->getFont()->setBold(true)->getColor()->setARGB('FF4B5563');
+
+        $rowNum = 2;
+        $totalByName = [];
+        foreach ($barang as $item) {
+            foreach ($item->unitBarang as $unit) {
+                $col = 1;
+
+                $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $rowNum, $rowNum - 1);
+
+                $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $rowNum, $unit->serial_number ?? '-');
+
+                $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $rowNum, $item->nama ?? '-');
+                // Format Harga menjadi Rupiah dengan pemisah ribuan titik
+                $formattedHarga = 'Rp ' . number_format($item->harga ?? 0, 0, ',', '.');
+                $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $rowNum, $formattedHarga);
+                if ($includeCategory) {
+                    $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $rowNum, optional($item->kategori)->nama ?? '-');
+                }
+
+                $itemName = $item->nama ?? '-';
+                if (!isset($totalByName[$itemName])) {
+                    $totalByName[$itemName] = 0;
+                }
+                $totalByName[$itemName]++;
+
+                $rowNum++;
+            }
+        }
+
+        $highestRow = $sheet->getHighestRow();
+        if ($highestRow >= 2) {
+            $sheet->getStyle('A2:A' . $highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('B2:B' . $highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+            
+            // Format Harga menjadi Rupiah
+            $sheet->getStyle('D2:D' . $highestRow)
+                  ->getNumberFormat()
+                  ->setFormatCode('"Rp "#,##0');
+        }
+
+        // Tabel Border
+        $highestColumn = $sheet->getHighestColumn();
+        $tableRange = 'A1:' . $highestColumn . $highestRow;
+        $sheet->getStyle($tableRange)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+        // Hitung Total Barang
+        $summaryStartCol = ($includeCategory ? 6 : 5) + 1;
+        $summaryStartColLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($summaryStartCol);
+    
+        $summaryHeaders = ['No', 'Nama Barang', 'Total'];
+        $summaryRow = 1;
+        for ($i = 0; $i < count($summaryHeaders); $i++) {
+            $cell = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($summaryStartCol + $i) . $summaryRow;
+            $sheet->setCellValue($cell, $summaryHeaders[$i]);
+        }
+        
+        // Style Header
+        $summaryEndCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($summaryStartCol + count($summaryHeaders) - 1);
+        $summaryHeaderRange = $summaryStartColLetter . '1:' . $summaryEndCol . '1';
+        $sheet->getStyle($summaryHeaderRange)->getFill()->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFEEEEEE');
+        $sheet->getStyle($summaryHeaderRange)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle($summaryHeaderRange)->getFont()->setBold(true)->getColor()->setARGB('FF4B5563');
+        
+        $summaryRow = 2;
+        $summaryNum = 1;
+        foreach ($totalByName as $name => $total) {
+            $col = $summaryStartCol;
+            $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $summaryRow, $summaryNum);
+            $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $summaryRow, $name);
+            $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $summaryRow, $total);
+            $summaryRow++;
+            $summaryNum++;
+        }
+        
+        // Tabel Border
+        if ($summaryRow > 2) {
+            $summaryTableRange = $summaryStartColLetter . '1:' . $summaryEndCol . ($summaryRow - 1);
+            $sheet->getStyle($summaryTableRange)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+            $summaryNoCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($summaryStartCol);
+            $sheet->getStyle($summaryNoCol . '2:' . $summaryNoCol . ($summaryRow - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        }
+        
+        // 🟢 SOLUSI: Gabungkan filter dari kolom A1 sampai kolom terakhir tabel summary
+        $sheet->setAutoFilter('A1:' . $summaryEndCol . '1');
+
+        // Resize Kolom
+        foreach (range('A', $sheet->getHighestColumn()) as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        
+        if ($barangId && $barang->count() === 1) {
+            $barangNama = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '-', $barang->first()->nama);
+            $fileName = 'barang-' . strtolower(str_replace(' ', '-', $barangNama)) . '.xlsx';
+        } else {
+            $fileName = 'laporan-barang.xlsx';
+        }
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $fileName . '"');
+        $writer->save('php://output');
+        exit;
+    }
+
+    // Update Barang
+    public function update(Request $request, $id)
+    {
+        try {
+            $barang = Barang::findOrFail($id);
+
+            $validator = Validator::make($request->all(), [
+                'nama' => 'required|string|max:255',
+                'harga' => 'required|numeric|min:0',
+                'kategori_id' => 'required|integer',
+                'deskripsi' => 'nullable|string',
+            ]);
+
+            $validator->after(function ($validator) use ($request) {
+                if ($request->filled('kategori_id') && !Kategori::where('id', $request->kategori_id)->exists()) {
+                    $validator->errors()->add('kategori_id', 'Kategori tidak valid.');
+                }
             });
 
-        return view('admin.BarangAdmin', compact('barang'));
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal.',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $validated = $validator->validated();
+            $barang->update($validated);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data barang berhasil diperbarui',
+                'data' => $barang
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 400);
+        }
     }
 }

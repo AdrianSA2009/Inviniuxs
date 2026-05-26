@@ -9,11 +9,33 @@ class KategoriSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::table('kategori')->insert([
-            ['nama' => 'Elektronik'],
-            ['nama' => 'Alat Dapur'],
-            ['nama' => 'Furniture'],
-            ['nama' => 'Aksesoris'],
-        ]);
+        $kategoriList = [
+            'Kulkas',
+            'Freezer',
+            'Microwave',
+            'Oven Listrik',
+            'Rice Cooker',
+            'Kompor Listrik',
+            'Cooker Hood',
+            'Dispenser',
+            'Blender',
+            'Food Processor',
+            'Mixer',
+            'Juicer',
+            'Air Fryer',
+            'Sandwich Maker',
+            'Coffee Maker',
+            'Electric Kettle',
+            'Slow Cooker',
+            'Dishwasher',
+            'Meat Grinder',
+            'Ice Maker',
+        ];
+
+        foreach ($kategoriList as $kategori) {
+            DB::table('kategori')->insert([
+                'nama' => $kategori,
+            ]);
+        }
     }
 }

@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class UnitBarang extends Model
 {
+    use HasFactory;
     protected $table = 'unit_barang';
     protected $fillable = ['barang_id', 'barang_masuk_id', 'serial_number', 'status'];
     

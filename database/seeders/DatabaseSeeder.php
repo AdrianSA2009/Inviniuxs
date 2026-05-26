@@ -21,11 +21,15 @@ class DatabaseSeeder extends Seeder
             KaryawanSeeder::class,
             BarangSeeder::class,
             BarangMasukSeeder::class,
+            UnitBarangSeeder::class,
+            BarangKeluarSeeder::class,
+            SessionsSeeder::class,
+            CacheSeeder::class,
         ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // User::factory()->create([
+        //     'name' => 'Test User',
+        //     'email' => 'test@example.com',
+        // ]);
     }
 }
