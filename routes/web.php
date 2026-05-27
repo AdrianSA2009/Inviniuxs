@@ -39,7 +39,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/barangmasuk/check-serial', [BarangMasukController::class, 'checkSerial'])->name('barang-masuk.check-serial');
         Route::put('/barangmasuk/{id}', [BarangMasukController::class, 'update'])->name('barang-masuk.update');
         Route::delete('/barangmasuk/{id}', [BarangMasukController::class, 'destroy'])->name('barang-masuk.destroy');
-        Route::get('/barangkeluar', [BarangKeluarController::class, 'index'])->name('barang-keluar');
+        Route::get('/barangkeluar', [BarangKeluarController::class, 'index'])->name('barang-keluar.index');
+        Route::post('/barangkeluar', [BarangKeluarController::class, 'store'])->name('barang-keluar.store');
+        Route::put('/barangkeluar/{id}', [BarangKeluarController::class, 'update'])->name('barang-keluar.update');
+        Route::delete('/barangkeluar/{id}', [BarangKeluarController::class, 'destroy'])->name('barang-keluar.destroy');
     });
 
     Route::prefix('manajer')->middleware('role:manajer')->group(function () {
