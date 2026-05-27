@@ -19,7 +19,7 @@ class PenggunaController extends Controller
                          ->orWhere('username', 'like', "%{$search}%");
         })
         ->paginate(10)
-        ->withQueryString(); // Sangat penting agar pencarian tidak hilang saat klik "Next/Previous"
+        ->withQueryString();
 
         return view('admin.datapengguna', compact('pengguna'));
     }

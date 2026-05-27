@@ -4,6 +4,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Data Barang - Admin</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -26,6 +27,8 @@
             background-color: #f8fafc;
             transition: all 0.2s;
         }
+
+        /* Toast handled by SweetAlert2 like halaman data pengguna */
     </style>
 </head>
 <body class="bg-slate-50 text-gray-800 h-screen flex overflow-hidden">
@@ -66,7 +69,7 @@
                     </nav>
                     <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Manajemen Inventaris</h2>
                 </div>
-                <button data-modal-target="modalExport" data-modal-toggle="modalExport" class="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 font-semibold hover:bg-slate-50 transition-all shadow-sm">
+                <button type="button" onclick="showModal('modalExport')" class="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 font-semibold hover:bg-slate-50 transition-all shadow-sm">
                         <i class="fas fa-file-export"></i>
                         <span>Export</span>
                 </button>
@@ -77,27 +80,23 @@
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors">
                         <i class="fas fa-search text-sm"></i>
                     </span>
-                    <input type="text" 
+                    <input type="text" id="searchBarang"
                         class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" 
                         placeholder="Cari nama barang...">
                 </div>
                 
                 <div class="flex items-center gap-3 w-full md:w-auto">
                     <div class="relative flex-1 md:w-52">
-                        <select class="w-full appearance-none px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-600 text-sm font-medium cursor-pointer transition-all pr-10">
+                        <select id="filterKategori" class="w-full appearance-none px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-600 text-sm font-medium cursor-pointer transition-all pr-10">
                             <option value="">Semua Jenis</option>
-                            <option value="kulkas">Kulkas</option>
-                            <option value="kipas">Kipas</option>
-                            <option value="kompor">Kompor</option>
+                            @foreach($categories as $kategori)
+                                <option value="{{ strtolower($kategori->nama) }}">{{ $kategori->nama }}</option>
+                            @endforeach
                         </select>
                         <div class="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-slate-400">
                             <i class="fas fa-chevron-down text-[10px]"></i>
                         </div>
                     </div>
-                    
-                    <button class="p-2.5 bg-slate-50 text-slate-500 border border-slate-200 rounded-xl hover:bg-white hover:text-blue-600 hover:border-blue-200 hover:shadow-sm transition-all active:scale-95">
-                        <i class="fas fa-sliders text-sm"></i>
-                    </button>
                 </div>
             </div>
             <!-- End Komponen Atas Tabel -->
@@ -115,55 +114,54 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            <tr class="group hover:bg-slate-50/50 transition-all">
-                                <td class="px-6 py-4 font-bold text-slate-800">LG GN-B372SQBK 312L Inverter</td>
-                                <td class="px-6 py-4">
-                                    <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">Kulkas</span>
-                                </td>
-                                <td class="px-6 py-4 font-medium text-slate-700">Rp 7.499.900</td>
-                                <td class="px-6 py-4 text-slate-700 font-semibold">12 Unit</td>
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center justify-center gap-2">
-                                        <button data-modal-target="modalDetail" data-modal-toggle="modalDetail" class="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all" title="Detail">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button data-modal-target="modalEdit" data-modal-toggle="modalEdit" class="p-2 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button data-modal-target="modalDelete" data-modal-toggle="modalDelete" class="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all" title="Hapus">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        
-                            <tr class="group hover:bg-slate-50/50 transition-all">
-                                <td class="px-6 py-4 font-bold text-slate-800">Samsung Kulkas 2 Pintu RT47 465L</td>
-                                <td class="px-6 py-4">
-                                    <span class="px-3 py-1 rounded-full bg-purple-50 text-purple-600 text-xs font-semibold">Kulkas</span>
-                                </td>
-                                <td class="px-6 py-4 font-medium text-slate-700">Rp 8.299.000</td>
-                                <td class="px-6 py-4 text-slate-700 font-semibold">3 Unit</td>
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center justify-center gap-2">
-                                        <button data-modal-target="modalDetail" data-modal-toggle="modalDetail" class="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all" title="Detail">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button data-modal-target="modalEdit" data-modal-toggle="modalEdit" class="p-2 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button data-modal-target="modalDelete" data-modal-toggle="modalDelete" class="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all" title="Hapus">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
+                            @forelse($barang as $item)
+                                <tr class="group hover:bg-slate-50/50 transition-all">
+                                    <td class="px-6 py-4 font-bold text-slate-800">{{ $item->nama }}</td>
+                                    <td class="px-6 py-4">
+                                        <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">{{ optional($item->kategori)->nama ?? 'Tidak diketahui' }}</span>
+                                    </td>
+                                    <td class="px-6 py-4 font-medium text-slate-700">Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
+                                    <td class="px-6 py-4 text-slate-700 font-semibold">{{ number_format($item->stok) }} Unit</td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center justify-center gap-2">
+                                                    <button type="button"
+                                                onclick='bukaDetail({
+                                                    nama: @json($item->nama),
+                                                    harga: @json($item->harga),
+                                                    deskripsi: @json($item->deskripsi),
+                                                    units: @json($item->unitBarang->map(fn($u) => ["sn" => $u->serial_number, "nama" => $item->nama ?? "-"]))
+                                                })'
+                                                class="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all" title="Detail">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button type="button"
+                                                onclick='bukaEdit({
+                                                    id: @json($item->id),
+                                                    nama: @json($item->nama),
+                                                    harga: @json($item->harga),
+                                                    kategori_id: @json($item->kategori?->id),
+                                                    deskripsi: @json($item->deskripsi)
+                                                })'
+                                                class="p-2 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button type="button" onclick='bukaExportBarang(@json($item->id), @json($item->nama))' class="p-2 rounded-lg text-slate-400 hover:text-green-600 hover:bg-green-50 transition-all" title="Export">
+                                                <i class="fas fa-file-export"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="px-6 py-8 text-center text-slate-500">Belum ada data barang.</td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
             
                 <div class="p-6 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <p class="text-sm text-slate-500">Menampilkan 1-10 dari 1,245 barang</p>
+                    <p class="text-sm text-slate-500">Menampilkan {{ $barang->count() }} barang</p>
                     <div class="flex items-center gap-2">
                         <button class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm">Previous</button>
                         <button class="w-8 h-8 bg-blue-600 text-white rounded-lg text-sm font-bold">1</button>
@@ -175,7 +173,7 @@
 
             <!-- Modal Detail -->
             <div id="modalDetail" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-                <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center w-full">
                     <div id="closeModalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
                 
                     <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
@@ -186,7 +184,7 @@
                             <h3 class="text-lg font-bold text-slate-800">
                                 <i class="fas fa-file-alt text-blue-600 mr-2"></i> Rincian Inventaris
                             </h3>
-                            <button data-modal-hide="modalDetail" class="text-slate-400 hover:text-slate-600">
+                            <button data-modal-hide="modalDetail" onclick="hideModal('modalDetail')" class="text-slate-400 hover:text-slate-600">
                                 <i class="fas fa-times text-xl"></i>
                             </button>
                         </div>
@@ -205,46 +203,36 @@
                         
                             <div>
                                 <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Deskripsi Spesifikasi</label>
-                                <p class="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100 leading-relaxed">
-                                    Kulkas 2 pintu 312L berwarna Dark Graphite Steel, kulkas ini memiliki fitur Multi Air Flow untuk pendinginan merata, Moist Balance Crisper untuk kesegaran sayur, dan rak Tempered Glass.
+                                <p id="detailDeskripsi" class="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100 leading-relaxed max-h-24 overflow-y-auto">
+                                    -
                                 </p>
                             </div>
                         
                             <div>
                                 <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 text-blue-600">Daftar Unit Tersedia</label>
                                 <div class="border border-slate-100 rounded-xl overflow-hidden">
-                                    <table class="w-full text-sm text-left">
-                                        <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100">
-                                            <tr>
-                                                <th class="px-4 py-2.5 w-12 text-center">No</th>
-                                                <th class="px-4 py-2.5">Kode Barang (SKU/SN)</th>
-                                                <th class="px-4 py-2.5">Nama Barang</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-slate-100 text-slate-700">
-                                            <tr class="hover:bg-slate-50/50">
-                                                <td class="px-4 py-3 text-center">1</td>
-                                                <td class="px-4 py-3 font-mono text-xs text-blue-600 font-bold">904KRZP12345</td>
-                                                <td class="px-4 py-3">LG GN-B372SQBK 312L Inverter</td>
-                                            </tr>
-                                            <tr class="hover:bg-slate-50/50">
-                                                <td class="px-4 py-3 text-center">2</td>
-                                                <td class="px-4 py-3 font-mono text-xs text-blue-600 font-bold">108KRAA67890</td>
-                                                <td class="px-4 py-3">LG GN-B372SQBK 312L Inverter</td>
-                                            </tr>
-                                            <tr class="hover:bg-slate-50/50">
-                                                <td class="px-4 py-3 text-center">3</td>
-                                                <td class="px-4 py-3 font-mono text-xs text-blue-600 font-bold">203KRBK00112</td>
-                                                <td class="px-4 py-3">LG GN-B372SQBK 312L Inverter</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                    <div class="max-h-32 overflow-y-auto">
+                                        <table class="w-full text-sm text-left">
+                                            <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100">
+                                                <tr>
+                                                    <th class="px-4 py-2.5 w-12 text-center">No</th>
+                                                    <th class="px-4 py-2.5">Kode Barang (SKU/SN)</th>
+                                                    <th class="px-4 py-2.5">Nama Barang</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="detail-unit-body" class="divide-y divide-slate-100 text-slate-700">
+                                                <tr>
+                                                    <td colspan="3" class="px-4 py-4 text-slate-500 text-sm text-center">Pilih barang untuk melihat daftar unit.</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     
                         <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
-                            <button data-modal-hide="modalDetail" class="px-6 py-2 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-bold hover:bg-slate-100 transition-all">
+                            <button data-modal-hide="modalDetail" onclick="hideModal('modalDetail')" class="px-6 py-2 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-bold hover:bg-slate-100 transition-all">
                                 Tutup
                             </button>
                         </div>
@@ -252,33 +240,6 @@
                 </div>
             </div>
             <!-- End Modal Detail -->
-
-            <!-- Modal Delete -->
-            <div id="modalDelete" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-                <div id="closeDeleteOverlay" class="fixed inset-0 bg-red-900/20 backdrop-blur-sm transition-opacity"></div>
-
-                <div class="animate-modal relative bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl overflow-hidden text-center border-4 border-red-50">
-                    <div class="p-10">
-                        <div class="relative w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <div class="absolute inset-0 rounded-full bg-red-100 animate-ping opacity-75"></div>
-                            <i class="fas fa-trash-alt text-4xl text-red-600 relative"></i>
-                        </div>
-
-                        <h3 class="text-2xl font-black text-slate-800 mb-3">Hapus Data?</h3>
-                        <p class="text-slate-500 text-sm mb-8">Data akan dihapus secara permanen dari database.</p>
-                    
-                        <div class="space-y-3">
-                            <button id="confirmDeleteBtn" class="w-full py-4 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 hover:scale-[1.02] transition-all shadow-lg shadow-red-200">
-                                Ya, Hapus Sekarang
-                            </button>
-                            <button data-modal-hide="modalDelete" class="w-full py-4 bg-white text-slate-400 rounded-2xl font-bold hover:text-slate-600 transition-all">
-                                Cancel Action
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- End Modal Delete -->
 
             <!-- Modal Edit -->
             <div id="modalEdit" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
@@ -288,13 +249,14 @@
                     <div class="h-2 bg-gradient-to-r from-amber-400 to-orange-500"></div>
                 
                     <form id="formEditBarang">
+                        <input type="hidden" id="editBarangId" name="id">
                         <div class="p-8">
                             <div class="flex justify-between items-start mb-8">
                                 <div>
                                     <span class="px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-bold uppercase tracking-widest">Update Registry</span>
                                     <h2 class="text-3xl font-extrabold text-slate-800 mt-2 tracking-tight">Edit Data Barang</h2>
                                 </div>
-                                <button type="button" data-modal-hide="modalEdit" class="bg-slate-100 hover:bg-slate-200 text-slate-400 w-10 h-10 rounded-full transition-all flex items-center justify-center">
+                                <button type="button" data-modal-hide="modalEdit" onclick="hideModal('modalEdit')" class="bg-slate-100 hover:bg-slate-200 text-slate-400 w-10 h-10 rounded-full transition-all flex items-center justify-center">
                                     <i class="fas fa-times"></i>
                                 </button>
                             </div>
@@ -302,7 +264,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="md:col-span-2 space-y-1.5">
                                     <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nama Perangkat</label>
-                                    <input type="text" id="editNama" value="LG GN-B372SQBK 312L Inverter" 
+                                    <input type="text" id="editNama" name="nama" required
                                         class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none text-slate-700 font-medium">
                                 </div>
                             
@@ -310,33 +272,34 @@
                                     <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Harga Satuan (Rp)</label>
                                     <div class="relative">
                                         <span class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">Rp</span>
-                                        <input type="number" id="editHarga" value="7499900" 
+                                        <input type="number" id="editHarga" name="harga" required min="0"
                                             class="w-full pl-12 pr-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none text-slate-700 font-bold">
                                     </div>
                                 </div>
                             
                                 <div class="space-y-1.5">
                                     <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Kategori</label>
-                                    <select id="editKategori" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none text-slate-700 font-medium appearance-none">
-                                        <option value="kulkas">Kulkas</option>
-                                        <option value="kipas">Kipas</option>
-                                        <option value="kompor">Kompor</option>
+                                    <select id="editKategori" name="kategori_id" required class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none text-slate-700 font-medium appearance-none">
+                                        <option value="">Pilih Kategori</option>
+                                        @foreach($categories as $kategori)
+                                            <option value="{{ $kategori->id }}">{{ $kategori->nama }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                             
                                 <div class="md:col-span-2 space-y-1.5">
                                     <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Deskripsi Spesifikasi</label>
-                                    <textarea id="editDeskripsi" rows="3" 
-                                        class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none text-slate-600 text-sm leading-relaxed">Kulkas 2 pintu 312L berwarna Dark Graphite Steel, kulkas ini memiliki fitur Multi Air Flow untuk pendinginan merata, Moist Balance Crisper untuk kesegaran sayur, dan rak Tempered Glass.</textarea>
+                                    <textarea id="editDeskripsi" name="deskripsi" rows="3"
+                                        class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none text-slate-600 text-sm leading-relaxed"></textarea>
                                 </div>
                             </div>
                         </div>
                     
                         <div class="bg-slate-50 p-6 flex justify-end gap-3">
-                            <button type="button" data-modal-hide="modalEdit" class="px-6 py-3 text-slate-400 font-bold hover:text-slate-600 transition-all">
+                            <button type="button" data-modal-hide="modalEdit" onclick="hideModal('modalEdit')" class="px-6 py-3 text-slate-400 font-bold hover:text-slate-600 transition-all">
                                 Discard
                             </button>
-                            <button type="submit" class="px-10 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-amber-500 transition-all shadow-xl shadow-slate-200">
+                            <button type="submit" id="submitEditBtn" class="px-10 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-amber-500 transition-all shadow-xl shadow-slate-200">
                                 Save Changes
                             </button>
                         </div>
@@ -360,12 +323,12 @@
                                 <p class="text-slate-400 text-xs mt-0.5">Filter dan pilih kategori untuk diunduh</p>
                             </div>
                         </div>
-                        <button data-modal-hide="modalExport" class="text-slate-400 hover:text-white transition-colors">
+                        <button type="button" onclick="hideModal('modalExport')" class="text-slate-400 hover:text-white transition-colors">
                             <i class="fas fa-times text-xl"></i>
                         </button>
                     </div>
                 
-                    <form id="formExport" class="p-8">
+                    <form id="formExport" action="{{ route('brgadmin.export') }}" method="GET" class="p-8">
                         <div class="mb-6 relative group">
                             <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Cari Kategori</label>
                             <div class="relative">
@@ -376,20 +339,21 @@
                         </div>
 
                         <!-- Kategori Export -->
-                        <div id="categoryGrid" class="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+                        <div id="categoryGrid" class="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                             <label class="category-item relative cursor-pointer group">
                                 <input type="radio" name="exportCategory" value="all" class="peer hidden" checked>
                                 <div class="p-4 text-center rounded-2xl border-2 border-slate-50 bg-slate-50 text-slate-600 font-bold text-[11px] transition-all peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:text-green-700 group-hover:bg-slate-100 items-center">
                                     <span class="category-name">Semua Data</span>
                                 </div>
                             </label>
-                        
-                            <label class="category-item relative cursor-pointer group">
-                                <input type="radio" name="exportCategory" value="kulkas" class="peer hidden">
-                                <div class="p-4 text-center rounded-2xl border-2 border-slate-50 bg-slate-50 text-slate-600 font-bold text-[11px] transition-all peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:text-green-700 group-hover:bg-slate-100 items-center">
-                                    <span class="category-name">Kulkas</span>
-                                </div>
-                            </label>
+                            @foreach ($categories as $kategori)
+                                <label class="category-item relative cursor-pointer group">
+                                    <input type="radio" name="exportCategory" value="{{ $kategori->id }}" class="peer hidden">
+                                    <div class="p-4 text-center rounded-2xl border-2 border-slate-50 bg-slate-50 text-slate-600 font-bold text-[11px] transition-all peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:text-green-700 group-hover:bg-slate-100 items-center">
+                                        <span class="category-name">{{ $kategori->nama }}</span>
+                                    </div>
+                                </label>
+                            @endforeach
                         </div>
                         <!-- End Kategori Export -->
 
@@ -407,11 +371,64 @@
                 </div>
             </div>
             <!-- End Modal Export -->
+
+            <!-- Modal Export Konfirmasi Barang -->
+            <div id="modalExportConfirm" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center w-full">
+                    <div id="closeExportConfirmOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
+                
+                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                    <div class="inline-block align-bottom bg-white rounded-2xl text-center shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full border border-slate-200 overflow-hidden">
+                        <div class="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-8 border-b border-slate-100">
+                            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-file-excel text-3xl text-green-600"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800 mb-1">Export Barang</h3>
+                            <p id="exportBarangNama" class="text-sm text-slate-600 font-semibold">-</p>
+                        </div>
+                    
+                        <div class="px-6 py-6">
+                            <p class="text-sm text-slate-600 mb-6">Barang ini akan diekspor menjadi file Excel dengan detail lengkap unit yang tersedia.</p>
+                            
+                            <div class="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-100">
+                                <div class="text-xs text-slate-500 uppercase tracking-widest font-bold mb-2">File akan berisi:</div>
+                                <ul class="text-xs text-slate-600 space-y-1.5">
+                                    <li class="flex items-center gap-2">
+                                        <i class="fas fa-check text-green-600"></i>
+                                        <span>Data Barang</span>
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <i class="fas fa-check text-green-600"></i>
+                                        <span>Daftar Unit (Serial Number)</span>
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <i class="fas fa-check text-green-600"></i>
+                                        <span>Informasi Harga</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    
+                        <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-center gap-3">
+                            <button type="button" onclick="hideModal('modalExportConfirm')" class="px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-bold hover:bg-slate-100 transition-all">
+                                Batal
+                            </button>
+                            <button type="button" id="btnConfirmExport" class="px-6 py-2.5 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition-all flex items-center gap-2">
+                                <i class="fas fa-download"></i>
+                                <span>Export Sekarang</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End Modal Export Konfirmasi Barang -->
         </main>
         <!-- End Main Content -->
     </div>
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         AOS.init({
             duration: 800,
@@ -458,6 +475,253 @@
         });
     
         observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
+
+        function showModal(id) {
+            const element = document.getElementById(id);
+            if (!element) return;
+            element.classList.remove('hidden');
+            element.classList.add('flex');
+        }
+
+        function hideModal(id) {
+            const element = document.getElementById(id);
+            if (!element) return;
+            element.classList.add('hidden');
+            element.classList.remove('flex');
+        }
+
+        function formatRupiah(value) {
+            if (value === null || value === undefined) {
+                return '-';
+            }
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                maximumFractionDigits: 0
+            }).format(value);
+        }
+
+        function bukaDetail(data) {
+            document.getElementById('detailNama').textContent = data.nama || '-';
+            document.getElementById('detailHarga').textContent = formatRupiah(data.harga);
+            document.getElementById('detailDeskripsi').textContent = data.deskripsi || '-';
+
+            const tbody = document.getElementById('detail-unit-body');
+            tbody.innerHTML = '';
+
+            if (!data.units || data.units.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-4 text-slate-500 text-sm text-center">Tidak ada unit tersedia.</td></tr>';
+                return;
+            }
+
+            data.units.forEach(function(unit, index) {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50/50';
+                tr.innerHTML =
+                    '<td class="px-4 py-3 text-center text-xs font-semibold text-slate-700">' + (index + 1) + '</td>' +
+                    '<td class="px-4 py-3 text-xs text-slate-700">' + (unit.sn || '-') + '</td>' +
+                    '<td class="px-4 py-3 text-sm text-slate-700">' + (unit.nama || '-') + '</td>';
+                tbody.appendChild(tr);
+            });
+
+            showModal('modalDetail');
+        }
+
+        // Buka Modal Edit dengan data barang
+        function bukaEdit(data) {
+            document.getElementById('editBarangId').value = data.id;
+            document.getElementById('editNama').value = data.nama || '';
+            document.getElementById('editHarga').value = data.harga || '';
+            document.getElementById('editKategori').value = data.kategori_id || '';
+            document.getElementById('editDeskripsi').value = data.deskripsi || '';
+            showModal('modalEdit');
+        }
+
+        // Handle Form Submit Edit
+        document.getElementById('formEditBarang').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const barangId = document.getElementById('editBarangId').value;
+            const nama = document.getElementById('editNama').value;
+            const harga = document.getElementById('editHarga').value;
+            const kategoriId = document.getElementById('editKategori').value;
+            const deskripsi = document.getElementById('editDeskripsi').value;
+
+            if (!barangId) {
+                alert('ID barang tidak ditemukan!');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitEditBtn');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Menyimpan...';
+
+            try {
+                const response = await fetch(`/admin/barang/${barangId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                    },
+                    body: JSON.stringify({
+                        nama: nama,
+                        harga: harga,
+                        kategori_id: kategoriId,
+                        deskripsi: deskripsi
+                    })
+                });
+
+                let data;
+                try {
+                    data = await response.json();
+                } catch (parseError) {
+                    data = { success: false, message: 'Respon server tidak valid.' };
+                }
+
+                if (response.ok && data.success) {
+                    hideModal('modalEdit');
+                    showToast('Data barang berhasil diperbarui!', 'success');
+                    setTimeout(function() {
+                        location.reload();
+                    }, 700);
+                } else if (response.status === 422 && data.errors) {
+                    const firstError = Object.values(data.errors)[0][0] || 'Validasi gagal.';
+                    showToast(firstError, 'error');
+                } else {
+                    showToast(data.message || 'Gagal menyimpan data', 'error');
+                }
+            } catch (error) {
+                showToast('Terjadi kesalahan: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
+
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+
+        function showToast(message, type = 'success') {
+            Toast.fire({
+                icon: type === 'error' ? 'error' : 'success',
+                title: message
+            });
+        }
+
+        // Export Barang Individual
+        let currentExportBarangId = null;
+
+        function bukaExportBarang(barangId, barangNama) {
+            currentExportBarangId = barangId;
+            document.getElementById('exportBarangNama').textContent = barangNama;
+            showModal('modalExportConfirm');
+        }
+
+        document.getElementById('btnConfirmExport').addEventListener('click', async function() {
+            if (!currentExportBarangId) return;
+
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Memproses...</span>';
+
+            try {
+                const form = document.createElement('form');
+                form.method = 'GET';
+                form.action = `{{ route('brgadmin.export') }}`;
+                form.target = '_blank';
+
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'barang_id';
+                input.value = currentExportBarangId;
+
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+                document.body.removeChild(form);
+
+                setTimeout(() => {
+                    hideModal('modalExportConfirm');
+                    showToast('File berhasil diunduh!', 'success');
+                }, 500);
+            } catch (error) {
+                showToast('Gagal mengexport: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        });
+
+        // Unified Filter: Search by Nama & Filter by Kategori
+        const searchInput = document.getElementById('searchBarang');
+        const categorySelect = document.getElementById('filterKategori');
+        
+        function filterTable() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const selectedCategory = categorySelect.value.toLowerCase().trim();
+            
+            const tableBody = document.querySelector('tbody');
+            const tableRows = tableBody.querySelectorAll('tr:not(.no-data-row)');
+            let visibleCount = 0;
+        
+            tableRows.forEach(row => {
+                // Ambil kolom pertama (Nama Barang) dan kedua (Kategori)
+                const namaCell = row.querySelector('td:first-child');
+                const kategoriCell = row.querySelector('td:nth-child(2)');
+                
+                if (!namaCell || !kategoriCell) return;
+        
+                const namaBarang = namaCell.textContent.toLowerCase();
+                const kategoriBarang = kategoriCell.textContent.toLowerCase().trim();
+                
+                // Cek kecocokan
+                const matchSearch = namaBarang.includes(searchTerm);
+                const matchCategory = selectedCategory === "" || kategoriBarang === selectedCategory;
+        
+                // Tampilkan baris jika sesuai dengan kedua filter
+                if (matchSearch && matchCategory) {
+                    row.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    row.classList.add('hidden');
+                }
+            });
+        
+            // Tampilkan/Sembunyikan pesan "Barang tidak ditemukan"
+            let noDataRow = tableBody.querySelector('.no-data-row');
+            if (visibleCount === 0) {
+                if (!noDataRow) {
+                    noDataRow = document.createElement('tr');
+                    noDataRow.className = 'no-data-row';
+                    noDataRow.innerHTML = '<td colspan="5" class="px-6 py-8 text-center text-slate-500">Barang tidak ditemukan.</td>';
+                    tableBody.appendChild(noDataRow);
+                }
+                noDataRow.classList.remove('hidden');
+            } else if (noDataRow) {
+                noDataRow.classList.add('hidden');
+            }
+        }
+        
+        // Tambahkan event listener untuk input teks dan dropdown select
+        searchInput.addEventListener('input', filterTable);
+        categorySelect.addEventListener('change', filterTable);
+
+        // Close overlay pada modal export confirm
+        document.getElementById('closeExportConfirmOverlay').addEventListener('click', function() {
+            hideModal('modalExportConfirm');
+        });
     </script>
 </body>
 </html>

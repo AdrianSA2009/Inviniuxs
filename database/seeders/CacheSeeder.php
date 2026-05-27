@@ -6,17 +6,17 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Faker\Factory as Faker;
 
-class SupplierSeeder extends Seeder
+class CacheSeeder extends Seeder
 {
     public function run(): void
     {
         $faker = Faker::create('id_ID');
 
         for ($i = 0; $i < 25; $i++) {
-            DB::table('suppliers')->insert([
-                'nama' => $faker->company,
-                'alamat' => $faker->address,
-                'no_telp' => $faker->phoneNumber,
+            DB::table('cache')->insert([
+                'key' => 'seed:cache:' . $i,
+                'value' => json_encode(['data' => $faker->sentence]),
+                'expiration' => time() + $faker->numberBetween(60, 3600),
             ]);
         }
     }

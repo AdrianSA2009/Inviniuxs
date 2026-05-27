@@ -28,13 +28,9 @@ class Barang extends Model
         return $this->belongsTo(Kategori::class, 'kategori_id');
     }
 
-    public function barangMasuk()
+    // Relasi ke unit barang
+    public function unitBarang()
     {
-        return $this->hasMany(BarangMasuk::class);
-    }
-
-    public function barangKeluar()
-    {
-        return $this->hasMany(BarangKeluar::class);
+        return $this->hasMany(UnitBarang::class, 'barang_id');
     }
 }
