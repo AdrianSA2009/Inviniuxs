@@ -56,16 +56,28 @@
                 </button>
             </div>
         
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-                <div class="relative w-full group">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-wrap gap-4 items-center justify-between">
+                <div class="relative w-full md:w-96 group">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors">
                         <i class="fas fa-search text-sm"></i>
                     </span>
                     <input type="text" 
                            id="search-input" 
-                           value="{{ request('search') }}" 
                            class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" 
                            placeholder="Cari nama atau username...">
+                </div>
+                
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <div class="relative flex-1 md:w-52">
+                        <select id="filterJabatan" class="w-full appearance-none px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-600 text-sm font-medium cursor-pointer transition-all pr-10">
+                            <option value="">Semua Jabatan</option>
+                            <option value="admin gudang">Admin Gudang</option>
+                            <option value="manajer">Manajer</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-slate-400">
+                            <i class="fas fa-chevron-down text-[10px]"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -117,12 +129,27 @@
                     </table>
                 </div>
                 <div class="p-6 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <p class="text-sm text-slate-500">Menampilkan seluruh data pengguna</p>
-                    <div id="pagination-container">
-                        {{ $pengguna->links('pagination::tailwind') }}
-                    </div>
+                    <p class="text-sm text-slate-500">Menampilkan {{ $pengguna->count() }} Pengguna</p>
+                    @if ($pengguna->hasPages())
+                        <div class="flex items-center gap-2">
+                            <a href="{{ $pengguna->previousPageUrl() ?: '#' }}" class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm {{ $pengguna->onFirstPage() ? 'opacity-50 cursor-not-allowed pointer-events-none' : '' }}">
+                                Previous
+                            </a>
+
+                            @foreach ($pengguna->getUrlRange(1, $pengguna->lastPage()) as $page => $url)
+                                @if ($page == $pengguna->currentPage())
+                                    <span class="w-8 h-8 bg-blue-600 text-white rounded-lg text-sm font-bold flex items-center justify-center">{{ $page }}</span>
+                                @else
+                                    <a href="{{ $url }}" class="w-8 h-8 hover:bg-slate-100 text-slate-600 rounded-lg text-sm transition-all flex items-center justify-center">{{ $page }}</a>
+                                @endif
+                            @endforeach
+
+                            <a href="{{ $pengguna->nextPageUrl() ?: '#' }}" class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm {{ $pengguna->hasMorePages() ? '' : 'opacity-50 cursor-not-allowed pointer-events-none' }}">
+                                Next
+                            </a>
+                        </div>
+                    @endif
                 </div>
-            </div>
         </main>
     </div>
 
@@ -318,55 +345,89 @@
         });
 
         document.addEventListener("DOMContentLoaded", function() {
-            let searchTimer;
             const searchInput = document.getElementById('search-input');
+            const roleSelect = document.getElementById('filterJabatan');
             const tableBody = document.getElementById('user-table-body');
             const paginationContainer = document.getElementById('pagination-container');
+            let searchTimer;
 
+            // 1. Fungsi untuk melakukan request ke server
             function fetchUserData(url) {
-                tableBody.style.opacity = '0.5';
+                tableBody.style.opacity = '0.5'; // Efek loading
 
                 fetch(url, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 })
                 .then(response => response.text())
                 .then(html => {
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(html, 'text/html');
 
+                    // Ekstrak tabel dan pagination dari respon server
                     const newTableBody = doc.getElementById('user-table-body');
                     const newPagination = doc.getElementById('pagination-container');
 
-                    if (newTableBody) tableBody.innerHTML = newTableBody.innerHTML;
-                    if (newPagination) paginationContainer.innerHTML = newPagination.innerHTML;
+                    // Ganti isi DOM
+                    if (newTableBody) {
+                        tableBody.innerHTML = newTableBody.innerHTML;
+                    }
+                    
+                    if (newPagination && paginationContainer) {
+                        paginationContainer.innerHTML = newPagination.innerHTML;
+                    } else if (!newPagination && paginationContainer) {
+                        paginationContainer.innerHTML = ''; // Kosongkan jika hasil pencarian kurang dari 1 halaman
+                    }
 
                     tableBody.style.opacity = '1';
+
+                    if (typeof initFlowbite === 'function') {
+                        initFlowbite(); 
+                    }
                 })
                 .catch(error => {
                     console.error('Terjadi kesalahan:', error);
                     tableBody.style.opacity = '1';
+                    
                 });
             }
 
-            searchInput.addEventListener('input', function() {
+            function triggerSearch() {
                 clearTimeout(searchTimer);
-                const query = this.value;
-
+                
                 searchTimer = setTimeout(() => {
-                    const fetchUrl = `{{ route('admin.pengguna.index') }}?search=${encodeURIComponent(query)}`;
-                    fetchUserData(fetchUrl);
-                }, 300);
-            });
+                    const searchQuery = searchInput.value;
+                    const roleQuery = roleSelect.value;
+                    
+                    // Buat URL dengan query string
+                    const url = new URL('{{ route('admin.pengguna.index') }}', window.location.origin);
+                    if (searchQuery) url.searchParams.set('search', searchQuery);
+                    if (roleQuery) url.searchParams.set('role', roleQuery);
+                    
+                    window.history.pushState({}, '', url);
 
+                    // Panggil data
+                    fetchUserData(url.toString());
+                }, 300); // Jeda 300ms saat mengetik
+            }
+
+            // 3. Event Listeners
+            searchInput.addEventListener('input', triggerSearch);
+            roleSelect.addEventListener('change', triggerSearch);
+
+            // 4. Handle klik tombol pagination
             document.addEventListener('click', function(e) {
                 const pageLink = e.target.closest('#pagination-container a');
                 if (pageLink) {
                     e.preventDefault();
+                    window.history.pushState({}, '', pageLink.href);
                     fetchUserData(pageLink.href);
                 }
             });
+            
+            // 5. Pertahankan nilai input dari URL (jika halaman di-reload)
+            const urlParams = new URLSearchParams(window.location.search);
+            if(urlParams.has('search')) searchInput.value = urlParams.get('search');
+            if(urlParams.has('role')) roleSelect.value = urlParams.get('role');
         });
     </script>
 </body>

@@ -13,14 +13,21 @@ class PenggunaController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
+        $role = $request->input('role'); // Tangkap filter jabatan
     
         $pengguna = User::when($search, function ($query, $search) {
-            return $query->where('nama', 'like', "%{$search}%")
-                         ->orWhere('username', 'like', "%{$search}%");
+            // Gunakan nested closure agar orWhere tidak merusak filter lain
+            return $query->where(function($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                  ->orWhere('username', 'like', "%{$search}%");
+            });
+        })
+        ->when($role, function ($query, $role) {
+            return $query->where('role', $role);
         })
         ->paginate(10)
         ->withQueryString();
-
+        
         return view('admin.datapengguna', compact('pengguna'));
     }
 

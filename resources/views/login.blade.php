@@ -63,7 +63,7 @@
                 <p class="text-slate-400">Silahkan masuk ke akun anda.</p>
             </div>
 
-            <form action="{{ route('login') }}" method="POST" class="space-y-6">a
+            <form action="{{ route('login') }}" method="POST" class="space-y-6">
                 @csrf
             
                 @if(session()->has('loginError'))

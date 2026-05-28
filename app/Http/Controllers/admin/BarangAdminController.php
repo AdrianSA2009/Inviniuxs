@@ -4,6 +4,7 @@ namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Barang;
 use App\Models\Kategori;
@@ -11,15 +12,30 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
-
+    
 class BarangAdminController extends Controller
 {
     // Tampilkan daftar barang
-    public function index()
+    public function index(Request $request)
     {
-        $barang = Barang::with(['kategori', 'unitBarang'])
-            ->get()
-            ->groupBy(function($item) {
+        $search = $request->input('search');
+        $kategori = $request->input('kategori'); 
+
+        $query = Barang::with(['kategori', 'unitBarang'])
+            ->when($search, function ($q) use ($search) {
+                $q->where(function($subQuery) use ($search) {
+                    $subQuery->where('nama', 'like', "%{$search}%")
+                             ->orWhere('deskripsi', 'like', "%{$search}%");
+                });
+            })
+            ->when($kategori, function ($q) use ($kategori) {
+                // HAPUS blok whereHas('kategori', ...)
+                // Cukup gunakan where() langsung ke kolom kategori_id
+                $q->where('kategori_id', $kategori);
+            });
+
+        $allBarang = $query->get()
+            ->groupBy(function ($item) {
                 return strtolower(trim($item->nama));
             })
             ->map(function ($group) {
@@ -38,6 +54,21 @@ class BarangAdminController extends Controller
                 return $item->stok > 0;
             })
             ->values();
+
+        $perPage = 10;
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $currentItems = $allBarang->slice(($currentPage - 1) * $perPage, $perPage)->values();
+
+        $barang = new LengthAwarePaginator(
+            $currentItems,
+            $allBarang->count(),
+            $perPage,
+            $currentPage,
+            [
+                'path' => $request->url(),
+                'query' => $request->query(),
+            ]
+        );
 
         $categories = Kategori::orderBy('nama')->get();
 

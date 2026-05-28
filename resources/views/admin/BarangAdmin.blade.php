@@ -90,7 +90,7 @@
                         <select id="filterKategori" class="w-full appearance-none px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-600 text-sm font-medium cursor-pointer transition-all pr-10">
                             <option value="">Semua Jenis</option>
                             @foreach($categories as $kategori)
-                                <option value="{{ strtolower($kategori->nama) }}">{{ $kategori->nama }}</option>
+                                <option value="{{ $kategori->id }}">{{ $kategori->nama }}</option>
                             @endforeach
                         </select>
                         <div class="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-slate-400">
@@ -162,12 +162,25 @@
             
                 <div class="p-6 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
                     <p class="text-sm text-slate-500">Menampilkan {{ $barang->count() }} barang</p>
-                    <div class="flex items-center gap-2">
-                        <button class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm">Previous</button>
-                        <button class="w-8 h-8 bg-blue-600 text-white rounded-lg text-sm font-bold">1</button>
-                        <button class="w-8 h-8 hover:bg-slate-100 text-slate-600 rounded-lg text-sm transition-all">2</button>
-                        <button class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm">Next</button>
-                    </div>
+                    @if ($barang->hasPages())
+                        <div class="flex items-center gap-2">
+                            <a href="{{ $barang->previousPageUrl() ?: '#' }}" class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm {{ $barang->onFirstPage() ? 'opacity-50 cursor-not-allowed pointer-events-none' : '' }}">
+                                Previous
+                            </a>
+
+                            @foreach ($barang->getUrlRange(1, $barang->lastPage()) as $page => $url)
+                                @if ($page == $barang->currentPage())
+                                    <span class="w-8 h-8 bg-blue-600 text-white rounded-lg text-sm font-bold flex items-center justify-center">{{ $page }}</span>
+                                @else
+                                    <a href="{{ $url }}" class="w-8 h-8 hover:bg-slate-100 text-slate-600 rounded-lg text-sm transition-all flex items-center justify-center">{{ $page }}</a>
+                                @endif
+                            @endforeach
+
+                            <a href="{{ $barang->nextPageUrl() ?: '#' }}" class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm {{ $barang->hasMorePages() ? '' : 'opacity-50 cursor-not-allowed pointer-events-none' }}">
+                                Next
+                            </a>
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -664,59 +677,92 @@
             }
         });
 
-        // Unified Filter: Search by Nama & Filter by Kategori
-        const searchInput = document.getElementById('searchBarang');
-        const categorySelect = document.getElementById('filterKategori');
-        
-        function filterTable() {
-            const searchTerm = searchInput.value.toLowerCase().trim();
-            const selectedCategory = categorySelect.value.toLowerCase().trim();
+        document.addEventListener("DOMContentLoaded", function() {
+            // PERBAIKAN 1: Sesuaikan ID dengan yang ada di HTML Anda
+            const searchInput = document.getElementById('searchBarang');
+            const categorySelect = document.getElementById('filterKategori');
             
-            const tableBody = document.querySelector('tbody');
-            const tableRows = tableBody.querySelectorAll('tr:not(.no-data-row)');
-            let visibleCount = 0;
-        
-            tableRows.forEach(row => {
-                // Ambil kolom pertama (Nama Barang) dan kedua (Kategori)
-                const namaCell = row.querySelector('td:first-child');
-                const kategoriCell = row.querySelector('td:nth-child(2)');
+            const tableBody = document.querySelector('tbody'); 
+            const paginationContainer = document.getElementById('pagination-container');
+            let searchTimer;
+
+            function fetchBarangData(url) {
+                tableBody.style.opacity = '0.5';
+
+                fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+
+                    const newTableBody = doc.querySelector('tbody');
+                    const newPagination = doc.getElementById('pagination-container');
+
+                    if (newTableBody) {
+                        tableBody.innerHTML = newTableBody.innerHTML;
+                    }
+                    
+                    if (newPagination && paginationContainer) {
+                        paginationContainer.innerHTML = newPagination.innerHTML;
+                    } else if (!newPagination && paginationContainer) {
+                        paginationContainer.innerHTML = ''; 
+                    }
+
+                    tableBody.style.opacity = '1';
+
+                    if (typeof initFlowbite === 'function') {
+                        initFlowbite(); 
+                    }
+                })
+                .catch(error => {
+                    console.error('Terjadi kesalahan:', error);
+                    tableBody.style.opacity = '1';
+                });
+            }
+
+            function triggerSearch() {
+                clearTimeout(searchTimer);
                 
-                if (!namaCell || !kategoriCell) return;
-        
-                const namaBarang = namaCell.textContent.toLowerCase();
-                const kategoriBarang = kategoriCell.textContent.toLowerCase().trim();
-                
-                // Cek kecocokan
-                const matchSearch = namaBarang.includes(searchTerm);
-                const matchCategory = selectedCategory === "" || kategoriBarang === selectedCategory;
-        
-                // Tampilkan baris jika sesuai dengan kedua filter
-                if (matchSearch && matchCategory) {
-                    row.classList.remove('hidden');
-                    visibleCount++;
-                } else {
-                    row.classList.add('hidden');
+                searchTimer = setTimeout(() => {
+                    const searchQuery = searchInput ? searchInput.value : '';
+                    const categoryQuery = categorySelect ? categorySelect.value : '';
+                    
+                    // PERBAIKAN 2: Route name harus "brgadmin" sesuai di web.php
+                    const url = new URL('{{ route('brgadmin') }}', window.location.origin);
+                    
+                    if (searchQuery) url.searchParams.set('search', searchQuery);
+                    if (categoryQuery) url.searchParams.set('kategori', categoryQuery);
+                    
+                    window.history.pushState({}, '', url);
+                    fetchBarangData(url.toString());
+                }, 300);
+            }
+
+            if (searchInput) searchInput.addEventListener('input', triggerSearch);
+            if (categorySelect) categorySelect.addEventListener('change', triggerSearch);
+
+            document.addEventListener('click', function(e) {
+                const pageLink = e.target.closest('#pagination-container a');
+                if (pageLink) {
+                    e.preventDefault();
+                    window.history.pushState({}, '', pageLink.href);
+                    fetchBarangData(pageLink.href);
                 }
             });
-        
-            // Tampilkan/Sembunyikan pesan "Barang tidak ditemukan"
-            let noDataRow = tableBody.querySelector('.no-data-row');
-            if (visibleCount === 0) {
-                if (!noDataRow) {
-                    noDataRow = document.createElement('tr');
-                    noDataRow.className = 'no-data-row';
-                    noDataRow.innerHTML = '<td colspan="5" class="px-6 py-8 text-center text-slate-500">Barang tidak ditemukan.</td>';
-                    tableBody.appendChild(noDataRow);
-                }
-                noDataRow.classList.remove('hidden');
-            } else if (noDataRow) {
-                noDataRow.classList.add('hidden');
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            if(urlParams.has('search') && searchInput) searchInput.value = urlParams.get('search');
+            if(urlParams.has('kategori') && categorySelect) categorySelect.value = urlParams.get('kategori');
+
+            const closeExport = document.getElementById('closeExportConfirmOverlay');
+            if (closeExport) {
+                closeExport.addEventListener('click', function() {
+                    hideModal('modalExportConfirm');
+                });
             }
-        }
-        
-        // Tambahkan event listener untuk input teks dan dropdown select
-        searchInput.addEventListener('input', filterTable);
-        categorySelect.addEventListener('change', filterTable);
+        });
 
         // Close overlay pada modal export confirm
         document.getElementById('closeExportConfirmOverlay').addEventListener('click', function() {
