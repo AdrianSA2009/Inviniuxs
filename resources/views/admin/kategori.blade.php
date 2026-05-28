@@ -4,7 +4,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Pengguna - Admin</title>
+    <title>Data Kategori - Admin</title>
     <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Fontawesome -->
@@ -46,6 +46,35 @@
         </header>
 
         <main class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-slate-50">
+            <!-- Alert Messages -->
+            @if ($message = Session::get('success'))
+                <div class="bg-green-50 border border-green-200 rounded-2xl p-4 flex items-center gap-3 animate-slide-in">
+                    <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-green-600 flex-shrink-0">
+                        <i class="fas fa-check text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-green-800 font-semibold text-sm">{{ $message }}</p>
+                    </div>
+                    <button onclick="this.parentElement.style.display='none'" class="text-green-400 hover:text-green-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            @endif
+
+            @if ($message = Session::get('error'))
+                <div class="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3 animate-slide-in">
+                    <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center text-red-600 flex-shrink-0">
+                        <i class="fas fa-exclamation-circle text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-red-800 font-semibold text-sm">{{ $message }}</p>
+                    </div>
+                    <button onclick="this.parentElement.style.display='none'" class="text-red-400 hover:text-red-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            @endif
+
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <nav class="flex text-sm text-slate-500 mb-2">
@@ -66,62 +95,60 @@
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors">
                         <i class="fas fa-search text-sm"></i>
                     </span>
-                    <input type="text" class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" placeholder="Cari nama kategori...">
+                    <input type="text" id="searchInput" class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" placeholder="Cari nama kategori...">
                 </div>
             </div>
 
             <div class="bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
+                    @if($kategoris->count() > 0)
+                    <table class="w-full text-left border-collapse" id="kategoriTable">
                         <thead>
                             <tr class="bg-slate-50/50 border-b border-slate-100">
                                 <th class="px-10 py-5 text-[11px] uppercase tracking-[0.15em] font-bold text-slate-400 text-center w-28">NO</th>
-                                <th class="px-10 py-5 text-[11px] uppercase tracking-[0.15em] font-bold text-slate-400">JENIS BARANG</th>
+                                <th class="px-10 py-5 text-[11px] uppercase tracking-[0.15em] font-bold text-slate-400">NAMA KATEGORI</th>
                                 <th class="px-10 py-5 text-[11px] uppercase tracking-[0.15em] font-bold text-slate-400 text-center w-48">AKSI</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            <tr class="group hover:bg-slate-50/50 transition-all">
-                                <td class="px-10 py-6 text-slate-500 font-bold text-center text-sm">1</td>
-                                <td class="px-10 py-6 font-bold text-[15px]">Kulkas</td>
+                            @foreach($kategoris as $index => $kategori)
+                            <tr class="kategori-row group hover:bg-slate-50/50 transition-all">
+                                <td class="px-10 py-6 text-slate-500 font-bold text-center text-sm">{{ $index + 1 }}</td>
+                                <td class="px-10 py-6 font-bold text-[15px] kategori-nama">{{ $kategori->nama }}</td>
                                 <td class="px-10 py-6">
                                     <div class="flex items-center justify-center gap-5">
-                                        <button data-modal-target="modalEdit" data-modal-toggle="modalEdit" class="text-slate-500 hover:text-blue-600 transition-colors">
+                                        <button data-modal-target="modalEdit" data-modal-toggle="modalEdit" onclick="editKategori({{ $kategori->id }}, '{{ $kategori->nama }}')" class="text-slate-500 hover:text-blue-600 transition-colors">
                                             <i class="fas fa-edit text-lg"></i>
                                         </button>
-                                        <button data-modal-target="modalDelete" data-modal-toggle="modalDelete" class="text-slate-500 hover:text-red-500 transition-colors">
+                                        <button data-modal-target="modalDelete" data-modal-toggle="modalDelete" onclick="deleteKategori({{ $kategori->id }}, '{{ $kategori->nama }}')" class="text-slate-500 hover:text-red-500 transition-colors">
                                             <i class="fas fa-trash text-lg"></i>
                                         </button>
                                     </div>
                                 </td>
                             </tr>
-                            <tr class="group hover:bg-slate-50/50 transition-all">
-                                <td class="px-10 py-6 text-slate-500 font-bold text-center text-sm">2</td>
-                                <td class="px-10 py-6 font-bold text-[15px]">Mesin Cuci</td>
-                                <td class="px-10 py-6">
-                                    <div class="flex items-center justify-center gap-5">
-                                        <button data-modal-target="modalEdit" data-modal-toggle="modalEdit" class="text-slate-500 hover:text-blue-600 transition-colors">
-                                            <i class="fas fa-edit text-lg"></i>
-                                        </button>
-                                        <button data-modal-target="modalDelete" data-modal-toggle="modalDelete" class="text-slate-500 hover:text-red-500 transition-colors">
-                                            <i class="fas fa-trash text-lg"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
+                            @endforeach
                         </tbody>
                     </table>
+                    @else
+                    <div class="p-12 text-center">
+                        <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-inbox text-3xl text-slate-400"></i>
+                        </div>
+                        <p class="text-slate-500 font-semibold mb-2">Belum ada data kategori</p>
+                        <p class="text-slate-400 text-sm mb-6">Mulai tambahkan kategori baru untuk mengorganisir inventaris Anda</p>
+                        <button data-modal-target="modalTambahKategori" data-modal-toggle="modalTambahKategori" class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 rounded-xl text-white font-semibold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
+                            <i class="fas fa-plus"></i>
+                            <span>Tambah Kategori Pertama</span>
+                        </button>
+                    </div>
+                    @endif
                 </div>
 
+                @if($kategoris->count() > 0)
                 <div class="px-10 py-6 bg-slate-50/50 flex flex-col md:flex-row justify-between items-center gap-6">
-                    <p class="text-sm text-slate-500 font-bold">Menampilkan 1-2 dari 15 kategori</p>
-                    <nav class="flex items-center gap-2">
-                        <button class="px-5 py-2.5 bg-white border border-slate-200 text-slate-400 rounded-xl text-xs font-bold hover:bg-slate-50 transition-all">Previous</button>
-                        <button class="w-10 h-10 bg-blue-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-200">1</button>
-                        <button class="w-10 h-10 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all">2</button>
-                        <button class="px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition-all">Next</button>
-                    </nav>
+                    <p class="text-sm text-slate-500 font-bold">Menampilkan {{ $kategoris->count() }} dari {{ $kategoris->count() }} kategori</p>
                 </div>
+                @endif
             </div>
         </main> 
     </div>
@@ -136,9 +163,14 @@
                     <i class="fas fa-trash-alt text-4xl text-red-600 relative"></i>
                 </div>
                 <h3 class="text-2xl font-black text-slate-800 mb-3">Hapus Data?</h3>
+                <p class="text-slate-500 text-sm mb-2">Kategori: <span id="deleteKategoriName" class="font-bold text-slate-700"></span></p>
                 <p class="text-slate-500 text-sm mb-8">Data akan dihapus secara permanen.</p>
                 <div class="space-y-3">
-                    <button class="w-full py-4 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-200">Ya, Hapus Sekarang</button>
+                    <form id="deleteForm" method="POST" style="display: none;">
+                        @csrf
+                        @method('DELETE')
+                    </form>
+                    <button onclick="document.getElementById('deleteForm').submit()" class="w-full py-4 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-200">Ya, Hapus Sekarang</button>
                     <button data-modal-hide="modalDelete" class="w-full py-4 bg-white text-slate-400 rounded-2xl font-bold hover:text-slate-600 transition-all">Cancel Action</button>
                 </div>
             </div>
@@ -166,16 +198,20 @@
                     </button>
                 </div>
 
-                <form class="p-6 pt-2">
+                <form action="{{ route('admin.kategori.store') }}" method="POST" class="p-6 pt-2">
+                    @csrf
                     <div class="mb-6">
                         <label class="block mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] ml-1">Nama Kategori</label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400">
                                 <i class="fas fa-tag text-xs"></i>
                             </div>
-                            <input type="text" 
+                            <input type="text" name="nama" 
                                    placeholder="Contoh : Kulkas" 
-                                   class="w-full pl-10 pr-4 py-3 bg-slate-50/50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none text-sm text-slate-700 font-semibold placeholder:text-slate-300">
+                                   class="w-full pl-10 pr-4 py-3 bg-slate-50/50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none text-sm text-slate-700 font-semibold placeholder:text-slate-300 @error('nama') border-red-500 @enderror">
+                            @error('nama')
+                                <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
+                            @enderror
                         </div>
                     </div>
 
@@ -217,12 +253,17 @@
 
                 <div class="border-b border-slate-100"></div>
 
-                <form class="p-8">
+                <form id="editForm" method="POST" class="p-8">
+                    @csrf
+                    @method('PUT')
                     <div class="mb-8">
                         <label class="block mb-2 text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em] ml-1">Nama Kategori</label>
 
-                        <input type="text" value="Kulkas" 
-                               class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none text-slate-700 font-semibold placeholder:text-slate-300">
+                        <input type="text" id="editNamaInput" name="nama" 
+                               class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none text-slate-700 font-semibold placeholder:text-slate-300 @error('nama') border-red-500 @enderror">
+                        @error('nama')
+                            <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
+                        @enderror
                     </div>
 
                     <div class="flex items-center justify-center gap-4">
@@ -262,6 +303,35 @@
         });
     
         observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
+
+        // Edit function
+        function editKategori(id, nama) {
+            document.getElementById('editNamaInput').value = nama;
+            const editForm = document.getElementById('editForm');
+            editForm.action = `/admin/kategori/${id}`;
+        }
+
+        // Delete function
+        function deleteKategori(id, nama) {
+            document.getElementById('deleteKategoriName').textContent = nama;
+            const deleteForm = document.getElementById('deleteForm');
+            deleteForm.action = `/admin/kategori/${id}`;
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('#kategoriTable tbody tr');
+            
+            tableRows.forEach(row => {
+                const namaKategori = row.querySelector('.kategori-nama').textContent.toLowerCase();
+                if (namaKategori.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
     </script>
 </body>
 </html>
