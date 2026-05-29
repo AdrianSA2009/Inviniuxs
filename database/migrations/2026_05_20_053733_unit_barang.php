@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('barang_id')->constrained('barang')->onDelete('cascade');
             $table->foreignId('barang_masuk_id')->constrained('barang_masuk')->onDelete('cascade');
+            $table->foreignId('barang_keluar_id')->nullable()->constrained('barang_keluar')->onDelete('set null');
             $table->string('serial_number')->unique();
-            $table->enum('status', ['tersedia', 'terjual', 'rusak'])->default('tersedia');
             $table->timestamps();
         });
     }

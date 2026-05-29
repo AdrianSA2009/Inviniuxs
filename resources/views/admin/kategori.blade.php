@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Fontawesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    @include('layout.partials.aos-head')
     
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -48,7 +49,7 @@
         <main class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-slate-50">
             <!-- Alert Messages -->
             @if ($message = Session::get('success'))
-                <div class="bg-green-50 border border-green-200 rounded-2xl p-4 flex items-center gap-3 animate-slide-in">
+                <div class="bg-green-50 border border-green-200 rounded-2xl p-4 flex items-center gap-3" data-aos="fade-down">
                     <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-green-600 flex-shrink-0">
                         <i class="fas fa-check text-lg"></i>
                     </div>
@@ -62,7 +63,7 @@
             @endif
 
             @if ($message = Session::get('error'))
-                <div class="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3 animate-slide-in">
+                <div class="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3" data-aos="fade-down">
                     <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center text-red-600 flex-shrink-0">
                         <i class="fas fa-exclamation-circle text-lg"></i>
                     </div>
@@ -75,7 +76,7 @@
                 </div>
             @endif
 
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4" data-aos="fade-down">
                 <div>
                     <nav class="flex text-sm text-slate-500 mb-2">
                         <span>Master Data</span>
@@ -90,18 +91,17 @@
                 </button>
             </div>
 
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100" data-aos="fade-up" data-aos-delay="100">
                 <div class="relative w-full group">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors">
                         <i class="fas fa-search text-sm"></i>
                     </span>
-                    <input type="text" id="searchInput" class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" placeholder="Cari nama kategori...">
+                    <input type="text" id="searchInput" value="{{ request('search') }}" class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" placeholder="Cari nama kategori...">
                 </div>
             </div>
 
-            <div class="bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden">
+            <div class="bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden" data-aos="fade-up" data-aos-delay="200">
                 <div class="overflow-x-auto">
-                    @if($kategoris->count() > 0)
                     <table class="w-full text-left border-collapse" id="kategoriTable">
                         <thead>
                             <tr class="bg-slate-50/50 border-b border-slate-100">
@@ -110,45 +110,68 @@
                                 <th class="px-10 py-5 text-[11px] uppercase tracking-[0.15em] font-bold text-slate-400 text-center w-48">AKSI</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            @foreach($kategoris as $index => $kategori)
+                        <tbody id="ajax-list-tbody" class="divide-y divide-slate-100">
+                            @forelse($kategoris as $index => $kategori)
                             <tr class="kategori-row group hover:bg-slate-50/50 transition-all">
-                                <td class="px-10 py-6 text-slate-500 font-bold text-center text-sm">{{ $index + 1 }}</td>
+                                <td class="px-10 py-6 text-slate-500 font-bold text-center text-sm">{{ $kategoris->firstItem() + $index }}</td>
                                 <td class="px-10 py-6 font-bold text-[15px] kategori-nama">{{ $kategori->nama }}</td>
                                 <td class="px-10 py-6">
                                     <div class="flex items-center justify-center gap-5">
                                         <button data-modal-target="modalEdit" data-modal-toggle="modalEdit" onclick="editKategori({{ $kategori->id }}, '{{ $kategori->nama }}')" class="text-slate-500 hover:text-blue-600 transition-colors">
                                             <i class="fas fa-edit text-lg"></i>
                                         </button>
-                                        <button data-modal-target="modalDelete" data-modal-toggle="modalDelete" onclick="deleteKategori({{ $kategori->id }}, '{{ $kategori->nama }}')" class="text-slate-500 hover:text-red-500 transition-colors">
-                                            <i class="fas fa-trash text-lg"></i>
-                                        </button>
+                                        @if($kategori->barang()->exists())
+                                            <button type="button" disabled 
+                                                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 text-slate-300 cursor-not-allowed" 
+                                                    title="Kategori tidak bisa dihapus karena sedang digunakan pada data barang/transaksi">
+                                                <i class="fas fa-trash-alt text-xs"></i>
+                                            </button>
+                                        @else
+                                            <button type="button" data-modal-target="modalDelete" data-modal-toggle="modalDelete" onclick="deleteKategori({{ $kategori->id }}, '{{ $kategori->nama }}')"
+                                                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all" 
+                                                    title="Hapus Kategori">
+                                                <i class="fas fa-trash-alt text-xs"></i>
+                                            </button>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
-                            @endforeach
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="px-6 py-12">
+                                        <div class="flex flex-col items-center justify-center text-slate-400">
+                                            <i class="fas fa-box-open text-5xl mb-4 text-slate-300"></i>
+                                            <p class="font-medium text-sm">Data Kategori tidak ditemukan.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
-                    @else
-                    <div class="p-12 text-center">
-                        <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-inbox text-3xl text-slate-400"></i>
-                        </div>
-                        <p class="text-slate-500 font-semibold mb-2">Belum ada data kategori</p>
-                        <p class="text-slate-400 text-sm mb-6">Mulai tambahkan kategori baru untuk mengorganisir inventaris Anda</p>
-                        <button data-modal-target="modalTambahKategori" data-modal-toggle="modalTambahKategori" class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 rounded-xl text-white font-semibold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
-                            <i class="fas fa-plus"></i>
-                            <span>Tambah Kategori Pertama</span>
-                        </button>
-                    </div>
-                    @endif
                 </div>
 
-                @if($kategoris->count() > 0)
-                <div class="px-10 py-6 bg-slate-50/50 flex flex-col md:flex-row justify-between items-center gap-6">
-                    <p class="text-sm text-slate-500 font-bold">Menampilkan {{ $kategoris->count() }} dari {{ $kategoris->count() }} kategori</p>
+                <div id="ajax-list-footer" class="p-6 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <p class="text-sm text-slate-500">Menampilkan {{ $kategoris->count() }} dari {{ $kategoris->total() }} Kategori</p>
+                    @if ($kategoris->hasPages())
+                        <div class="flex items-center gap-2">
+                            <a href="{{ $kategoris->previousPageUrl() ?: '#' }}" class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm {{ $kategoris->onFirstPage() ? 'opacity-50 cursor-not-allowed pointer-events-none' : '' }}">
+                                Previous
+                            </a>
+
+                            @foreach ($kategoris->getUrlRange(1, $kategoris->lastPage()) as $page => $url)
+                                @if ($page == $kategoris->currentPage())
+                                    <span class="w-8 h-8 bg-blue-600 text-white rounded-lg text-sm font-bold flex items-center justify-center">{{ $page }}</span>
+                                @else
+                                    <a href="{{ $url }}" class="w-8 h-8 hover:bg-slate-100 text-slate-600 rounded-lg text-sm transition-all flex items-center justify-center">{{ $page }}</a>
+                                @endif
+                            @endforeach
+
+                            <a href="{{ $kategoris->nextPageUrl() ?: '#' }}" class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm {{ $kategoris->hasMorePages() ? '' : 'opacity-50 cursor-not-allowed pointer-events-none' }}">
+                                Next
+                            </a>
+                        </div>
+                    @endif
                 </div>
-                @endif
             </div>
         </main> 
     </div>
@@ -198,21 +221,21 @@
                     </button>
                 </div>
 
-                <form action="{{ route('admin.kategori.store') }}" method="POST" class="p-6 pt-2">
+                <form id="addKategoriForm" action="{{ route('admin.kategori.store') }}" method="POST" class="p-6 pt-2">
                     @csrf
                     <div class="mb-6">
                         <label class="block mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] ml-1">Nama Kategori</label>
+                        
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400">
                                 <i class="fas fa-tag text-xs"></i>
                             </div>
-                            <input type="text" name="nama" 
-                                   placeholder="Contoh : Kulkas" 
-                                   class="w-full pl-10 pr-4 py-3 bg-slate-50/50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none text-sm text-slate-700 font-semibold placeholder:text-slate-300 @error('nama') border-red-500 @enderror">
-                            @error('nama')
-                                <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
-                            @enderror
+                            <input type="text" name="nama" id="inputTambahNama"
+                                   placeholder="Contoh : Kulkas"
+                                   class="w-full pl-10 pr-4 py-3 bg-slate-50/50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none text-sm text-slate-700 font-semibold placeholder:text-slate-300">
                         </div>
+
+                        <span id="errorTambahNama" class="text-red-500 text-xs mt-1 hidden"></span>
                     </div>
 
                     <div class="flex items-center gap-3">
@@ -260,10 +283,9 @@
                         <label class="block mb-2 text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em] ml-1">Nama Kategori</label>
 
                         <input type="text" id="editNamaInput" name="nama" 
-                               class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none text-slate-700 font-semibold placeholder:text-slate-300 @error('nama') border-red-500 @enderror">
-                        @error('nama')
-                            <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
-                        @enderror
+                               class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none text-slate-700 font-semibold placeholder:text-slate-300">
+                        
+                        <span id="errorEditNama" class="text-red-500 text-xs mt-1 hidden block"></span>
                     </div>
 
                     <div class="flex items-center justify-center gap-4">
@@ -281,14 +303,9 @@
     </div>
     <!-- End Modal Edit -->
 
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    @include('layout.partials.aos-scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        AOS.init({
-            duration: 800,
-            once: true,
-            easing: 'ease-in-out'
-        });
-
         const sidebar = document.getElementById('sidebar-multi-level-sidebar');
         const customOverlay = document.getElementById('sidebar-overlay-custom');
     
@@ -318,20 +335,132 @@
             deleteForm.action = `/admin/kategori/${id}`;
         }
 
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('keyup', function() {
-            const searchTerm = this.value.toLowerCase();
-            const tableRows = document.querySelectorAll('#kategoriTable tbody tr');
-            
-            tableRows.forEach(row => {
-                const namaKategori = row.querySelector('.kategori-nama').textContent.toLowerCase();
-                if (namaKategori.includes(searchTerm)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
+
+        @if(session('toast_success'))
+            Toast.fire({
+                icon: 'success',
+                title: "{{ session('toast_success') }}"
             });
+        @endif
+
+        // Setup AJAX untuk Form Tambah
+        document.getElementById('addKategoriForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); 
+            
+            let form = this;
+            let submitBtn = form.querySelector('button[type="submit"]');
+            let inputNama = document.getElementById('inputTambahNama');
+            let errorMsg = document.getElementById('errorTambahNama');
+            let originalText = submitBtn.innerHTML;
+            
+            inputNama.classList.remove('border-red-500');
+            errorMsg.classList.add('hidden');
+            errorMsg.classList.remove('block');
+            errorMsg.innerText = '';
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Menyimpan...';
+
+            try {
+                let response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json' 
+                    },
+                    body: new FormData(form)
+                });
+
+                if (response.status === 422) {
+                    let data = await response.json();
+                    if (data.errors && data.errors.nama) {
+                        inputNama.classList.add('border-red-500');
+                        errorMsg.innerText = data.errors.nama[0];
+                        errorMsg.classList.remove('hidden');
+                        errorMsg.classList.add('block');
+                    }
+                } else if (response.ok) {
+                    // Simpan status sukses di memori browser sementara
+                    sessionStorage.setItem('showToastSuccess', 'Kategori berhasil ditambahkan!');
+                    window.location.reload(); 
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+
+        // Setup AJAX untuk Form Edit
+        document.getElementById('editForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            let form = this;
+            let submitBtn = form.querySelector('button[type="submit"]');
+            let inputNama = document.getElementById('editNamaInput');
+            let errorMsg = document.getElementById('errorEditNama');
+            let originalText = submitBtn.innerHTML;
+            
+            inputNama.classList.remove('border-red-500');
+            errorMsg.classList.add('hidden');
+            errorMsg.classList.remove('block');
+            errorMsg.innerText = '';
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Menyimpan...';
+
+            try {
+                let response = await fetch(form.action, {
+                    method: 'POST', 
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    body: new FormData(form)
+                });
+
+                if (response.status === 422) {
+                    let data = await response.json();
+                    if (data.errors && data.errors.nama) {
+                        inputNama.classList.add('border-red-500');
+                        errorMsg.innerText = data.errors.nama[0];
+                        errorMsg.classList.remove('hidden');
+                        errorMsg.classList.add('block');
+                    }
+                } else if (response.ok) {
+                    // Simpan status sukses di memori browser sementara
+                    sessionStorage.setItem('showToastSuccess', 'Kategori berhasil diperbarui!');
+                    window.location.reload(); 
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", function() {
+            if (sessionStorage.getItem('showToastSuccess')) {
+                Toast.fire({
+                    icon: 'success',
+                    title: sessionStorage.getItem('showToastSuccess')
+                });
+                sessionStorage.removeItem('showToastSuccess');
+            }
+
         });
     </script>
+    @include('layout.partials.ajax-list-search-init', ['indexUrl' => route('admin.kategori.index')])
 </body>
 </html>

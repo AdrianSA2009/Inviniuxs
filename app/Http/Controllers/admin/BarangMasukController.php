@@ -13,12 +13,24 @@ use Illuminate\Support\Facades\Validator;
 
 class BarangMasukController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $barangMasuk = BarangMasuk::with(['barang.kategori', 'supplier', 'unitBarang'])->get();
+        $search = $request->input('search');
+    
+        $barangMasuk = BarangMasuk::when($search, function ($query, $search) {
+            return $query->where('kode_transaksi', 'like', "%{$search}%")
+                ->orWhereHas('supplier', function($q) use ($search) {
+                    $q->where('nama', 'like', "%{$search}%");
+                });
+        })
+        ->with(['barang.kategori', 'supplier', 'unitBarang'])
+        ->orderBy('tgl_masuk', 'desc')
+        ->paginate(10)
+        ->withQueryString();
+        
         $kategori = DB::table('kategori')->get();
         $suppliers = DB::table('suppliers')->get();
-
+    
         return view('admin.barangmasuk', compact('barangMasuk', 'kategori', 'suppliers'));
     }
 
@@ -91,7 +103,6 @@ class BarangMasukController extends Controller
                     'barang_id' => $barang->id,
                     'barang_masuk_id' => $barangMasuk->id,
                     'serial_number' => strtoupper(trim($serial)),
-                    'status' => 'tersedia',
                 ]);
             }
 
@@ -218,7 +229,6 @@ class BarangMasukController extends Controller
                         'barang_id' => $barang->id,
                         'barang_masuk_id' => $barangMasuk->id,
                         'serial_number' => $serial,
-                        'status' => 'tersedia',
                     ]);
                 }
             }

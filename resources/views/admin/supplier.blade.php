@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Fontawesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    @include('layout.partials.aos-head')
     
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -46,7 +47,7 @@
         </header>
 
         <main class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-slate-50">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4" data-aos="fade-down">
                 <div>
                     <nav class="flex text-sm text-slate-500 mb-2">
                         <span>Master Data</span>
@@ -61,7 +62,7 @@
                 </button>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden" data-aos="fade-up" data-aos-delay="100">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
@@ -313,14 +314,8 @@
     </div>
 
 
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    @include('layout.partials.aos-scripts')
     <script>
-        AOS.init({
-            duration: 800,
-            once: true,
-            easing: 'ease-in-out'
-        });
-
         const sidebar = document.getElementById('sidebar-multi-level-sidebar');
         const customOverlay = document.getElementById('sidebar-overlay-custom');
     

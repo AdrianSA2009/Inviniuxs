@@ -13,10 +13,9 @@ class PenggunaController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-        $role = $request->input('role'); // Tangkap filter jabatan
+        $role = $request->input('role');
     
         $pengguna = User::when($search, function ($query, $search) {
-            // Gunakan nested closure agar orWhere tidak merusak filter lain
             return $query->where(function($q) use ($search) {
                 $q->where('nama', 'like', "%{$search}%")
                   ->orWhere('username', 'like', "%{$search}%");

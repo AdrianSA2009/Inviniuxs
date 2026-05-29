@@ -9,7 +9,7 @@ class UnitBarang extends Model
 {
     use HasFactory;
     protected $table = 'unit_barang';
-    protected $fillable = ['barang_id', 'barang_masuk_id', 'serial_number', 'status'];
+    protected $fillable = ['barang_id', 'barang_masuk_id', 'barang_keluar_id', 'serial_number'];
     
     public $timestamps = false;
 

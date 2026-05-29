@@ -40,6 +40,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/barangmasuk/{id}', [BarangMasukController::class, 'update'])->name('barang-masuk.update');
         Route::delete('/barangmasuk/{id}', [BarangMasukController::class, 'destroy'])->name('barang-masuk.destroy');
         Route::get('/barangkeluar', [BarangKeluarController::class, 'index'])->name('barang-keluar.index');
+        Route::get('/barangkeluar/check-serial', [BarangKeluarController::class, 'checkSerial'])->name('barang-keluar.check-serial');
         Route::post('/barangkeluar', [BarangKeluarController::class, 'store'])->name('barang-keluar.store');
         Route::put('/barangkeluar/{id}', [BarangKeluarController::class, 'update'])->name('barang-keluar.update');
         Route::delete('/barangkeluar/{id}', [BarangKeluarController::class, 'destroy'])->name('barang-keluar.destroy');
@@ -48,6 +49,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('manajer')->middleware('role:manajer')->group(function () {
         Route::get('/', [DashboardManajerController::class, 'index'])->name('dashboardmanajer');
         Route::get('/barang', [BarangManajerController::class, 'index'])->name('brgmanajer');
+        Route::get('/barang/export', [BarangManajerController::class, 'export'])->name('brgmanajer.export');
     });
 
 });

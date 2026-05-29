@@ -7,6 +7,7 @@
     <title>Data Pengguna - Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    @include('layout.partials.aos-head')
     
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -41,7 +42,7 @@
             </div>
         </header>
         <main class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-slate-50">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4" data-aos="fade-down">
                 <div>
                     <nav class="flex text-sm text-slate-500 mb-2">
                         <span>Master Data</span>
@@ -56,13 +57,14 @@
                 </button>
             </div>
         
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-wrap gap-4 items-center justify-between">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-wrap gap-4 items-center justify-between" data-aos="fade-up" data-aos-delay="100">
                 <div class="relative w-full md:w-96 group">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors">
                         <i class="fas fa-search text-sm"></i>
                     </span>
                     <input type="text" 
                            id="search-input" 
+                           value="{{ request('search') }}"
                            class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" 
                            placeholder="Cari nama atau username...">
                 </div>
@@ -70,9 +72,9 @@
                 <div class="flex items-center gap-3 w-full md:w-auto">
                     <div class="relative flex-1 md:w-52">
                         <select id="filterJabatan" class="w-full appearance-none px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-600 text-sm font-medium cursor-pointer transition-all pr-10">
-                            <option value="">Semua Jabatan</option>
-                            <option value="admin gudang">Admin Gudang</option>
-                            <option value="manajer">Manajer</option>
+                            <option value="" {{ !request('role') ? 'selected' : '' }}>Semua Jabatan</option>
+                            <option value="admin_gudang" {{ request('role') == 'admin_gudang' ? 'selected' : '' }}>Admin Gudang</option>
+                            <option value="manajer" {{ request('role') == 'manajer' ? 'selected' : '' }}>Manajer</option>
                         </select>
                         <div class="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-slate-400">
                             <i class="fas fa-chevron-down text-[10px]"></i>
@@ -81,7 +83,7 @@
                 </div>
             </div>
             
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden" data-aos="fade-up" data-aos-delay="200">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
@@ -93,7 +95,7 @@
                                 <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="user-table-body" class="divide-y divide-slate-100">
+                        <tbody id="ajax-list-tbody" class="divide-y divide-slate-100">
                             @forelse($pengguna as $index => $user)
                             <tr class="group hover:bg-slate-50/50 transition-all">
                                 <td class="px-6 py-4 font-medium text-slate-500">
@@ -128,8 +130,8 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="p-6 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <p class="text-sm text-slate-500">Menampilkan {{ $pengguna->count() }} Pengguna</p>
+                <div id="ajax-list-footer" class="p-6 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <p class="text-sm text-slate-500">Menampilkan {{ $pengguna->count() }} dari {{ $pengguna->total() }} Pengguna</p>
                     @if ($pengguna->hasPages())
                         <div class="flex items-center gap-2">
                             <a href="{{ $pengguna->previousPageUrl() ?: '#' }}" class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm {{ $pengguna->onFirstPage() ? 'opacity-50 cursor-not-allowed pointer-events-none' : '' }}">
@@ -285,13 +287,10 @@
     </div>
     <!-- Modal Delete -->
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    @include('layout.partials.aos-scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <script>
-        AOS.init({ duration: 800, once: true });
-        
         function openEditModal(id, nama, username, role) {
             document.getElementById('edit-id').value = id;
             document.getElementById('edit-nama').value = nama;
@@ -342,93 +341,14 @@
                     modalTambah.classList.add('flex');
                 @endif
             @endif
-        });
 
-        document.addEventListener("DOMContentLoaded", function() {
-            const searchInput = document.getElementById('search-input');
-            const roleSelect = document.getElementById('filterJabatan');
-            const tableBody = document.getElementById('user-table-body');
-            const paginationContainer = document.getElementById('pagination-container');
-            let searchTimer;
-
-            // 1. Fungsi untuk melakukan request ke server
-            function fetchUserData(url) {
-                tableBody.style.opacity = '0.5'; // Efek loading
-
-                fetch(url, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                })
-                .then(response => response.text())
-                .then(html => {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-
-                    // Ekstrak tabel dan pagination dari respon server
-                    const newTableBody = doc.getElementById('user-table-body');
-                    const newPagination = doc.getElementById('pagination-container');
-
-                    // Ganti isi DOM
-                    if (newTableBody) {
-                        tableBody.innerHTML = newTableBody.innerHTML;
-                    }
-                    
-                    if (newPagination && paginationContainer) {
-                        paginationContainer.innerHTML = newPagination.innerHTML;
-                    } else if (!newPagination && paginationContainer) {
-                        paginationContainer.innerHTML = ''; // Kosongkan jika hasil pencarian kurang dari 1 halaman
-                    }
-
-                    tableBody.style.opacity = '1';
-
-                    if (typeof initFlowbite === 'function') {
-                        initFlowbite(); 
-                    }
-                })
-                .catch(error => {
-                    console.error('Terjadi kesalahan:', error);
-                    tableBody.style.opacity = '1';
-                    
-                });
-            }
-
-            function triggerSearch() {
-                clearTimeout(searchTimer);
-                
-                searchTimer = setTimeout(() => {
-                    const searchQuery = searchInput.value;
-                    const roleQuery = roleSelect.value;
-                    
-                    // Buat URL dengan query string
-                    const url = new URL('{{ route('admin.pengguna.index') }}', window.location.origin);
-                    if (searchQuery) url.searchParams.set('search', searchQuery);
-                    if (roleQuery) url.searchParams.set('role', roleQuery);
-                    
-                    window.history.pushState({}, '', url);
-
-                    // Panggil data
-                    fetchUserData(url.toString());
-                }, 300); // Jeda 300ms saat mengetik
-            }
-
-            // 3. Event Listeners
-            searchInput.addEventListener('input', triggerSearch);
-            roleSelect.addEventListener('change', triggerSearch);
-
-            // 4. Handle klik tombol pagination
-            document.addEventListener('click', function(e) {
-                const pageLink = e.target.closest('#pagination-container a');
-                if (pageLink) {
-                    e.preventDefault();
-                    window.history.pushState({}, '', pageLink.href);
-                    fetchUserData(pageLink.href);
-                }
-            });
-            
-            // 5. Pertahankan nilai input dari URL (jika halaman di-reload)
-            const urlParams = new URLSearchParams(window.location.search);
-            if(urlParams.has('search')) searchInput.value = urlParams.get('search');
-            if(urlParams.has('role')) roleSelect.value = urlParams.get('role');
         });
     </script>
+    @include('layout.partials.ajax-list-search-init', [
+        'indexUrl' => route('admin.pengguna.index'),
+        'searchInputId' => 'search-input',
+        'filterSelectId' => 'filterJabatan',
+        'filterParam' => 'role',
+    ])
 </body>
 </html>

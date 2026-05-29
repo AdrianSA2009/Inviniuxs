@@ -23,8 +23,8 @@
             <div class="text-[10px] uppercase text-slate-500 font-bold pt-6 pb-2 px-4 tracking-widest">Master Data</div>
             
             {{-- Data Kategori --}}
-            <a href="{{ route('kategori') }}" 
-               class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all group {{ request()->routeIs('kategori') ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white glass-hover' }}">
+            <a href="{{ route('admin.kategori.index') }}" 
+               class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all group {{ request()->routeIs('admin.kategori.index') ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white glass-hover' }}">
                 <i class="fas fa-tags w-5 text-center group-hover:scale-110 transition-transform"></i>
                 <span>Data Kategori</span>
             </a>
@@ -60,7 +60,7 @@
             </a>
     
             {{-- Barang Keluar --}}
-            <a href="{{ route('barang-keluar') }}" 
+            <a href="{{ route('barang-keluar.index') }}" 
                class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {{ request()->routeIs('barang-keluar.index') ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white glass-hover' }}">
                 <i class="fas fa-arrow-up-long w-5 text-center text-orange-500 {{ request()->routeIs('barang-keluar.index') }}"></i>
                 <span>Barang Keluar</span>

@@ -12,6 +12,8 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Worksheet\Table;
+use PhpOffice\PhpSpreadsheet\Worksheet\Table\TableStyle;
     
 class BarangAdminController extends Controller
 {
@@ -134,9 +136,11 @@ class BarangAdminController extends Controller
                 $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $rowNum, $unit->serial_number ?? '-');
 
                 $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $rowNum, $item->nama ?? '-');
-                // Format Harga menjadi Rupiah dengan pemisah ribuan titik
-                $formattedHarga = 'Rp ' . number_format($item->harga ?? 0, 0, ',', '.');
-                $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $rowNum, $formattedHarga);
+                // Simpan harga sebagai angka agar filter Excel bisa urut termurah–termahal
+                $sheet->setCellValue(
+                    \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $rowNum,
+                    (float) ($item->harga ?? 0)
+                );
                 if ($includeCategory) {
                     $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $rowNum, optional($item->kategori)->nama ?? '-');
                 }
@@ -198,16 +202,36 @@ class BarangAdminController extends Controller
         }
         
         // Tabel Border
+        $summaryLastRow = $summaryRow - 1;
         if ($summaryRow > 2) {
-            $summaryTableRange = $summaryStartColLetter . '1:' . $summaryEndCol . ($summaryRow - 1);
+            $summaryTableRange = $summaryStartColLetter . '1:' . $summaryEndCol . $summaryLastRow;
             $sheet->getStyle($summaryTableRange)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
             $summaryNoCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($summaryStartCol);
-            $sheet->getStyle($summaryNoCol . '2:' . $summaryNoCol . ($summaryRow - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle($summaryNoCol . '2:' . $summaryNoCol . $summaryLastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         }
-        
-        // 🟢 SOLUSI: Gabungkan filter dari kolom A1 sampai kolom terakhir tabel summary
-        $sheet->setAutoFilter('A1:' . $summaryEndCol . '1');
+
+        // Filter: kolom A-E (data utama) dan G-I (ringkasan); kolom F tanpa filter
+        $mainLastColLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(count($headers));
+        $tableStyle = new TableStyle();
+        $tableStyle->setTheme(TableStyle::TABLE_STYLE_NONE);
+
+        if ($highestRow >= 2) {
+            $mainTable = new Table('A1:' . $mainLastColLetter . $highestRow, 'DataBarang');
+            $mainTable->setStyle(clone $tableStyle);
+            $mainTable->setAllowFilter(true);
+            $sheet->addTable($mainTable);
+        }
+
+        if ($summaryRow > 2) {
+            $summaryTable = new Table(
+                $summaryStartColLetter . '1:' . $summaryEndCol . $summaryLastRow,
+                'RingkasanBarang'
+            );
+            $summaryTable->setStyle(clone $tableStyle);
+            $summaryTable->setAllowFilter(true);
+            $sheet->addTable($summaryTable);
+        }
 
         // Resize Kolom
         foreach (range('A', $sheet->getHighestColumn()) as $col) {

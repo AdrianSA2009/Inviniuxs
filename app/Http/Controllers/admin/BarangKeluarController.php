@@ -13,61 +13,88 @@ use Illuminate\Support\Facades\Validator;
 
 class BarangKeluarController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $barangKeluar = BarangKeluar::with(['barang.kategori', 'karyawan'])->get();
-        $barang = Barang::with('kategori')->get();
+        $search = $request->input('search');
 
-        return view('admin.barangkeluar', compact('barangKeluar', 'barang'));
+        $barangKeluar = BarangKeluar::when($search, function ($query, $search) {
+            return $query->where(function($q) use ($search) {
+                $q->where('kode_transaksi', 'like', "%{$search}%")
+                  ->orWhere('penerima', 'like', "%{$search}%");
+            });
+        })
+        ->with(['barang.kategori', 'karyawan', 'unitBarang'])
+        ->orderBy('tgl_keluar', 'desc')
+        ->paginate(10)
+        ->withQueryString();
+
+        $barang = Barang::with('kategori')->get();
+        $karyawan = \App\Models\User::all();
+
+        return view('admin.barangkeluar', compact('barangKeluar', 'barang', 'karyawan'));
     }
 
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'barang_id' => 'required|exists:barang,id',
+            'penerima' => 'required|string|max:255',
             'tgl_keluar' => 'required|date',
-            'jumlah' => 'required|integer|min:1',
+            'serial_number' => 'required|array|min:1',
+            'serial_number.*' => 'required|string',
         ], [
-            'barang_id.required' => 'Pilih barang terlebih dahulu',
+            'penerima.required' => 'Penerima harus diisi',
             'tgl_keluar.required' => 'Tanggal keluar harus diisi',
-            'jumlah.required' => 'Jumlah harus diisi',
-            'jumlah.min' => 'Jumlah minimal harus 1',
+            'serial_number.required' => 'Daftar unit tidak boleh kosong',
         ]);
 
-        $validator->after(function ($validator) use ($request) {
-            $barang = Barang::find($request->barang_id);
-            if ($barang && $request->jumlah > $barang->stok) {
-                $validator->errors()->add('jumlah', 'Stok tidak cukup! Stok tersedia: ' . $barang->stok);
-            }
-        });
-
         $validator->validate();
+
+        $serialNumbers = collect($request->input('serial_number', []))
+            ->map(fn($sn) => strtoupper(trim($sn)))
+            ->filter()
+            ->unique()
+            ->all();
+
+        $units = UnitBarang::whereIn('serial_number', $serialNumbers)->get();
+
+        if ($units->count() !== count($serialNumbers)) {
+            return redirect()->back()->with('error', 'Beberapa serial number tidak ditemukan dalam sistem.');
+        }
+
+        $unavailable = $units->filter(fn($unit) => $unit->barang_keluar_id !== null);
+        if ($unavailable->isNotEmpty()) {
+            return redirect()->back()->with('error', 'Beberapa unit tidak tersedia (mungkin sudah keluar atau rusak).');
+        }
 
         DB::beginTransaction();
 
         try {
-            $barang = Barang::findOrFail($request->barang_id);
+            $tanggal = date('Ymd', strtotime($request->tgl_keluar));
+            $hitungTransaksi = BarangKeluar::where('tgl_keluar', $request->tgl_keluar)->distinct('kode_transaksi')->count('kode_transaksi') + 1;
+            $kodeTransaksi = 'OUT-' . $tanggal . '-' . str_pad($hitungTransaksi, 3, '0', STR_PAD_LEFT);
 
-            $barangKeluar = BarangKeluar::create([
-                'barang_id' => $request->barang_id,
-                'user_id' => Auth::id(),
-                'tgl_keluar' => $request->tgl_keluar,
-                'jumlah' => $request->jumlah,
-            ]);
+            $groupedUnits = $units->groupBy('barang_id');
 
-            // Kurangi stok barang
-            $barang->stok -= $request->jumlah;
-            $barang->save();
+            foreach ($groupedUnits as $barangId => $group) {
+                $jumlah = $group->count();
+                
+                $barangKeluar = BarangKeluar::create([
+                    'kode_transaksi' => $kodeTransaksi,
+                    'barang_id' => $barangId,
+                    'user_id' => Auth::id() ?? 1,
+                    'penerima' => $request->penerima,
+                    'tgl_keluar' => $request->tgl_keluar,
+                    'jumlah' => $jumlah,
+                ]);
 
-            // Update status unit barang dari tersedia menjadi keluar
-            $unitBarangKeluar = UnitBarang::where('barang_id', $request->barang_id)
-                ->where('status', 'tersedia')
-                ->limit($request->jumlah)
-                ->get();
+                $barang = Barang::find($barangId);
+                $barang->stok -= $jumlah;
+                $barang->save();
 
-            foreach ($unitBarangKeluar as $unit) {
-                $unit->status = 'keluar';
-                $unit->save();
+                foreach ($group as $unit) {
+                    $unit->barang_keluar_id = $barangKeluar->id;
+                    $unit->save();
+                }
             }
 
             DB::commit();
@@ -81,92 +108,124 @@ class BarangKeluarController extends Controller
         }
     }
 
+    public function checkSerial(Request $request)
+    {
+        $serial = strtoupper(trim($request->query('serial_number', '')));
+        $barangKeluarId = $request->query('barang_keluar_id');
+
+        if ($serial === '') {
+            return response()->json(['valid' => false, 'message' => 'Serial number kosong']);
+        }
+
+        $unit = UnitBarang::with('barang')->where('serial_number', $serial)->first();
+
+        if (!$unit) {
+            return response()->json(['valid' => false, 'message' => 'Unit tidak ditemukan']);
+        }
+
+        if ($unit->barang_keluar_id !== null && $unit->barang_keluar_id != $barangKeluarId) {
+            return response()->json(['valid' => false, 'message' => 'Unit tidak tersedia (sudah keluar)']);
+        }
+
+        return response()->json([
+            'valid' => true, 
+            'nama_barang' => $unit->barang->nama ?? '-',
+            'unit_id' => $unit->id
+        ]);
+    }
+
     public function update(Request $request, $id)
     {
         $barangKeluar = BarangKeluar::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'barang_id' => 'required|exists:barang,id',
+            'penerima' => 'required|string|max:255',
             'tgl_keluar' => 'required|date',
-            'jumlah' => 'required|integer|min:1',
+            'serial_number' => 'required|array|min:1',
+            'serial_number.*' => 'required|string',
         ], [
-            'barang_id.required' => 'Pilih barang terlebih dahulu',
+            'penerima.required' => 'Penerima harus diisi',
             'tgl_keluar.required' => 'Tanggal keluar harus diisi',
-            'jumlah.required' => 'Jumlah harus diisi',
-            'jumlah.min' => 'Jumlah minimal harus 1',
+            'serial_number.required' => 'Daftar unit tidak boleh kosong',
         ]);
 
-        $validator->after(function ($validator) use ($request, $barangKeluar) {
-            $barang = Barang::find($request->barang_id);
-            $oldJumlah = $barangKeluar->jumlah;
-            $newJumlah = $request->jumlah;
-            $delta = $newJumlah - $oldJumlah;
+        $validator->validate();
 
-            if ($barang && $delta > 0 && $delta > $barang->stok) {
-                $validator->errors()->add('jumlah', 'Stok tidak cukup untuk penambahan! Stok tersedia: ' . $barang->stok);
-            }
+        $serialNumbers = collect($request->input('serial_number', []))
+            ->map(fn($sn) => strtoupper(trim($sn)))
+            ->filter()
+            ->unique()
+            ->all();
+
+        $units = UnitBarang::whereIn('serial_number', $serialNumbers)->get();
+
+        if ($units->count() !== count($serialNumbers)) {
+            return redirect()->back()->with('error', 'Beberapa serial number tidak ditemukan dalam sistem.');
+        }
+
+        $invalidUnits = $units->filter(function($unit) use ($barangKeluar) {
+            return $unit->barang_keluar_id !== null && $unit->barang_keluar_id !== $barangKeluar->id;
         });
 
-        $validator->validate();
+        if ($invalidUnits->isNotEmpty()) {
+            return redirect()->back()->with('error', 'Beberapa unit tidak tersedia (sudah keluar di transaksi lain atau rusak).');
+        }
 
         DB::beginTransaction();
 
         try {
-            $oldBarang = $barangKeluar->barang;
-            $oldJumlah = $barangKeluar->jumlah;
-            $newJumlah = $request->jumlah;
-            $delta = $newJumlah - $oldJumlah;
-
-            $newBarang = Barang::findOrFail($request->barang_id);
-
-            // Jika barang berbeda
-            if ($oldBarang->id !== $newBarang->id) {
-                // Kembalikan stok barang lama
-                $oldBarang->stok += $oldJumlah;
+            $oldUnits = UnitBarang::where('barang_keluar_id', $barangKeluar->id)->get();
+            $oldBarangId = $barangKeluar->barang_id;
+            $kodeTransaksi = $barangKeluar->kode_transaksi;
+            
+            $oldBarang = Barang::find($oldBarangId);
+            if ($oldBarang) {
+                $oldBarang->stok += $oldUnits->count();
                 $oldBarang->save();
-
-                // Update status unit barang lama menjadi tersedia
-                UnitBarang::where('barang_id', $oldBarang->id)
-                    ->where('status', 'keluar')
-                    ->limit($oldJumlah)
-                    ->update(['status' => 'tersedia']);
-
-                // Kurangi stok barang baru
-                $newBarang->stok -= $newJumlah;
-                $newBarang->save();
-
-                // Update status unit barang baru menjadi keluar
-                UnitBarang::where('barang_id', $newBarang->id)
-                    ->where('status', 'tersedia')
-                    ->limit($newJumlah)
-                    ->update(['status' => 'keluar']);
-            } else {
-                // Barang sama, hanya ada perubahan jumlah
-                if ($delta !== 0) {
-                    $newBarang->stok -= $delta;
-                    $newBarang->save();
-
-                    if ($delta > 0) {
-                        // Tambah unit yang keluar
-                        UnitBarang::where('barang_id', $newBarang->id)
-                            ->where('status', 'tersedia')
-                            ->limit($delta)
-                            ->update(['status' => 'keluar']);
-                    } else {
-                        // Kurangi unit yang keluar (kembalikan ke tersedia)
-                        UnitBarang::where('barang_id', $newBarang->id)
-                            ->where('status', 'keluar')
-                            ->limit(abs($delta))
-                            ->update(['status' => 'tersedia']);
-                    }
-                }
             }
 
-            $barangKeluar->update([
-                'barang_id' => $request->barang_id,
-                'tgl_keluar' => $request->tgl_keluar,
-                'jumlah' => $newJumlah,
-            ]);
+            foreach ($oldUnits as $u) {
+                $u->barang_keluar_id = null;
+                $u->save();
+            }
+
+            $groupedUnits = $units->groupBy('barang_id');
+            $isFirst = true;
+
+            foreach ($groupedUnits as $barangId => $group) {
+                $jumlah = $group->count();
+                $b = Barang::find($barangId);
+                $b->stok -= $jumlah;
+                $b->save();
+
+                if ($isFirst) {
+                    $barangKeluar->update([
+                        'kode_transaksi' => $kodeTransaksi,
+                        'barang_id' => $barangId,
+                        'user_id' => Auth::id() ?? 1,
+                        'penerima' => $request->penerima,
+                        'tgl_keluar' => $request->tgl_keluar,
+                        'jumlah' => $jumlah,
+                    ]);
+                    $currentBkId = $barangKeluar->id;
+                    $isFirst = false;
+                } else {
+                    $newBk = BarangKeluar::create([
+                        'kode_transaksi' => $kodeTransaksi,
+                        'barang_id' => $barangId,
+                        'user_id' => Auth::id() ?? 1,
+                        'penerima' => $request->penerima,
+                        'tgl_keluar' => $request->tgl_keluar,
+                        'jumlah' => $jumlah,
+                    ]);
+                    $currentBkId = $newBk->id;
+                }
+
+                foreach ($group as $u) {
+                    $u->barang_keluar_id = $currentBkId;
+                    $u->save();
+                }
+            }
 
             DB::commit();
 
@@ -186,18 +245,27 @@ class BarangKeluarController extends Controller
         DB::beginTransaction();
 
         try {
+            $units = UnitBarang::where('barang_keluar_id', $id)->get();
             $barang = $barangKeluar->barang;
-            $jumlah = $barangKeluar->jumlah;
 
-            // Kembalikan stok barang
-            $barang->stok += $jumlah;
-            $barang->save();
+            $jumlahToRestore = $units->count() > 0 ? $units->count() : $barangKeluar->jumlah;
 
-            // Update status unit barang dari keluar menjadi tersedia
-            UnitBarang::where('barang_id', $barang->id)
-                ->where('status', 'keluar')
-                ->limit($jumlah)
-                ->update(['status' => 'tersedia']);
+            if ($barang) {
+                $barang->stok += $jumlahToRestore;
+                $barang->save();
+            }
+
+            if ($units->count() > 0) {
+                foreach ($units as $u) {
+                    $u->barang_keluar_id = null;
+                    $u->save();
+                }
+            } else {
+                UnitBarang::where('barang_id', $barang->id)
+                    ->whereNotNull('barang_keluar_id')
+                    ->limit($jumlahToRestore)
+                    ->update(['barang_keluar_id' => null]);
+            }
 
             $barangKeluar->delete();
 

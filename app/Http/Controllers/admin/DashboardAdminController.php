@@ -28,7 +28,7 @@ class DashboardAdminController extends Controller
                     'kode' => $item->kode_transaksi,
                     'nama_supplier' => $item->supplier->nama ?? '-',
                     'tipe' => 'Barang Masuk',
-                    'tanggal' => Carbon::parse($item->tgl_masuk)->translatedFormat('d F Y, H:i'),
+                    'tanggal' => Carbon::parse($item->tgl_masuk)->translatedFormat('d F Y'),
                     'raw_date' => $item->tgl_masuk
                 ];
             });
@@ -43,7 +43,7 @@ class DashboardAdminController extends Controller
                     'kode' => $item->kode_transaksi,
                     'nama_supplier' => '-', 
                     'tipe' => 'Barang Keluar',
-                    'tanggal' => Carbon::parse($item->tgl_keluar)->translatedFormat('d F Y, H:i'),
+                    'tanggal' => Carbon::parse($item->tgl_keluar)->translatedFormat('d F Y'),
                     'raw_date' => $item->tgl_keluar
                 ];
             });

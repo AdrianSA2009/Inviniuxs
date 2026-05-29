@@ -10,8 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- AOS Animation -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    @include('layout.partials.aos-head')
     
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -60,7 +59,7 @@
         <!-- Main Content -->
         <main class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-slate-50">
             <!-- Komponen Atas Tabel -->
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4" data-aos="fade-down">
                 <div>
                     <nav class="flex text-sm text-slate-500 mb-2">
                         <span>Master Data</span>
@@ -75,12 +74,13 @@
                 </button>
             </div>
         
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-wrap gap-4 items-center justify-between">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-wrap gap-4 items-center justify-between" data-aos="fade-up" data-aos-delay="100">
                 <div class="relative w-full md:w-96 group">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors">
                         <i class="fas fa-search text-sm"></i>
                     </span>
                     <input type="text" id="searchBarang"
+                        value="{{ request('search') }}"
                         class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" 
                         placeholder="Cari nama barang...">
                 </div>
@@ -88,9 +88,9 @@
                 <div class="flex items-center gap-3 w-full md:w-auto">
                     <div class="relative flex-1 md:w-52">
                         <select id="filterKategori" class="w-full appearance-none px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-600 text-sm font-medium cursor-pointer transition-all pr-10">
-                            <option value="">Semua Jenis</option>
+                            <option value="" {{ !request('kategori') ? 'selected' : '' }}>Semua Jenis</option>
                             @foreach($categories as $kategori)
-                                <option value="{{ $kategori->id }}">{{ $kategori->nama }}</option>
+                                <option value="{{ $kategori->id }}" {{ request('kategori') == $kategori->id ? 'selected' : '' }}>{{ $kategori->nama }}</option>
                             @endforeach
                         </select>
                         <div class="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-slate-400">
@@ -101,7 +101,7 @@
             </div>
             <!-- End Komponen Atas Tabel -->
         
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden" data-aos="fade-up" data-aos-delay="200">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
@@ -113,7 +113,7 @@
                                 <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
+                        <tbody id="ajax-list-tbody" class="divide-y divide-slate-100">
                             @forelse($barang as $item)
                                 <tr class="group hover:bg-slate-50/50 transition-all">
                                     <td class="px-6 py-4 font-bold text-slate-800">{{ $item->nama }}</td>
@@ -160,8 +160,8 @@
                     </table>
                 </div>
             
-                <div class="p-6 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <p class="text-sm text-slate-500">Menampilkan {{ $barang->count() }} barang</p>
+                <div id="ajax-list-footer" class="p-6 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <p class="text-sm text-slate-500">Menampilkan {{ $barang->count() }} dari {{ $barang->total() }} Barang</p>
                     @if ($barang->hasPages())
                         <div class="flex items-center gap-2">
                             <a href="{{ $barang->previousPageUrl() ?: '#' }}" class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm {{ $barang->onFirstPage() ? 'opacity-50 cursor-not-allowed pointer-events-none' : '' }}">
@@ -440,15 +440,9 @@
         <!-- End Main Content -->
     </div>
 
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    @include('layout.partials.aos-scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        AOS.init({
-            duration: 800,
-            once: true,
-            easing: 'ease-in-out'
-        });
-
         // Pencarian kategori pada modal
         document.getElementById('searchCategory').addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
@@ -678,84 +672,6 @@
         });
 
         document.addEventListener("DOMContentLoaded", function() {
-            // PERBAIKAN 1: Sesuaikan ID dengan yang ada di HTML Anda
-            const searchInput = document.getElementById('searchBarang');
-            const categorySelect = document.getElementById('filterKategori');
-            
-            const tableBody = document.querySelector('tbody'); 
-            const paginationContainer = document.getElementById('pagination-container');
-            let searchTimer;
-
-            function fetchBarangData(url) {
-                tableBody.style.opacity = '0.5';
-
-                fetch(url, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                })
-                .then(response => response.text())
-                .then(html => {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-
-                    const newTableBody = doc.querySelector('tbody');
-                    const newPagination = doc.getElementById('pagination-container');
-
-                    if (newTableBody) {
-                        tableBody.innerHTML = newTableBody.innerHTML;
-                    }
-                    
-                    if (newPagination && paginationContainer) {
-                        paginationContainer.innerHTML = newPagination.innerHTML;
-                    } else if (!newPagination && paginationContainer) {
-                        paginationContainer.innerHTML = ''; 
-                    }
-
-                    tableBody.style.opacity = '1';
-
-                    if (typeof initFlowbite === 'function') {
-                        initFlowbite(); 
-                    }
-                })
-                .catch(error => {
-                    console.error('Terjadi kesalahan:', error);
-                    tableBody.style.opacity = '1';
-                });
-            }
-
-            function triggerSearch() {
-                clearTimeout(searchTimer);
-                
-                searchTimer = setTimeout(() => {
-                    const searchQuery = searchInput ? searchInput.value : '';
-                    const categoryQuery = categorySelect ? categorySelect.value : '';
-                    
-                    // PERBAIKAN 2: Route name harus "brgadmin" sesuai di web.php
-                    const url = new URL('{{ route('brgadmin') }}', window.location.origin);
-                    
-                    if (searchQuery) url.searchParams.set('search', searchQuery);
-                    if (categoryQuery) url.searchParams.set('kategori', categoryQuery);
-                    
-                    window.history.pushState({}, '', url);
-                    fetchBarangData(url.toString());
-                }, 300);
-            }
-
-            if (searchInput) searchInput.addEventListener('input', triggerSearch);
-            if (categorySelect) categorySelect.addEventListener('change', triggerSearch);
-
-            document.addEventListener('click', function(e) {
-                const pageLink = e.target.closest('#pagination-container a');
-                if (pageLink) {
-                    e.preventDefault();
-                    window.history.pushState({}, '', pageLink.href);
-                    fetchBarangData(pageLink.href);
-                }
-            });
-            
-            const urlParams = new URLSearchParams(window.location.search);
-            if(urlParams.has('search') && searchInput) searchInput.value = urlParams.get('search');
-            if(urlParams.has('kategori') && categorySelect) categorySelect.value = urlParams.get('kategori');
-
             const closeExport = document.getElementById('closeExportConfirmOverlay');
             if (closeExport) {
                 closeExport.addEventListener('click', function() {
@@ -764,10 +680,15 @@
             }
         });
 
-        // Close overlay pada modal export confirm
         document.getElementById('closeExportConfirmOverlay').addEventListener('click', function() {
             hideModal('modalExportConfirm');
         });
     </script>
+    @include('layout.partials.ajax-list-search-init', [
+        'indexUrl' => route('brgadmin'),
+        'searchInputId' => 'searchBarang',
+        'filterSelectId' => 'filterKategori',
+        'filterParam' => 'kategori',
+    ])
 </body>
 </html>

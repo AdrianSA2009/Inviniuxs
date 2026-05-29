@@ -7,7 +7,7 @@
     <title>Barang Masuk - Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    @include('layout.partials.aos-head')
     
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -39,7 +39,7 @@
         </header>
 
         <main class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-slate-50">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4" data-aos="fade-down">
                 <div>
                     <nav class="flex text-sm text-slate-500 mb-2">
                         <span>Transaksi</span>
@@ -53,15 +53,15 @@
                     <span>Tambah Barang</span>
                 </button>
             </div>
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100" data-aos="fade-up" data-aos-delay="100">
                 <div class="relative w-full group">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors">
                         <i class="fas fa-search text-sm"></i>
                     </span>
-                    <input type="text" class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" placeholder="Cari nama barang...">
+                    <input id="searchInput" type="text" value="{{ request('search') }}" class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" placeholder="Cari nama transaksi / supplier...">
                 </div>
             </div>
-            <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+            <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden" data-aos="fade-up" data-aos-delay="200">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
                         <thead>
@@ -72,7 +72,7 @@
                                 <th class="px-8 py-5 text-[11px] uppercase tracking-widest font-bold text-slate-400 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-50">
+                        <tbody id="ajax-list-tbody" class="divide-y divide-slate-50">
                             @forelse($barangMasuk as $item)
                             <tr class="group hover:bg-slate-50/50 transition-all">
                                 <td class="px-8 py-6 font-bold text-slate-800 uppercase tracking-tight">{{ $item->kode_transaksi }}</td>
@@ -127,13 +127,27 @@
                     </table>
                 </div>
                 
-                <div class="p-6 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <p class="text-sm text-slate-500">Menampilkan data transaksi</p>
-                    <div class="flex items-center gap-2">
-                        <button class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm">Previous</button>
-                        <button class="w-8 h-8 bg-blue-600 text-white rounded-lg text-sm font-bold">1</button>
-                        <button class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm">Next</button>
-                    </div>
+                <div id="ajax-list-footer" class="p-6 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <p class="text-sm text-slate-500">Menampilkan {{ $barangMasuk->count() }} dari {{ $barangMasuk->total() }} transaksi</p>
+                    @if ($barangMasuk->hasPages())
+                        <div class="flex items-center gap-2">
+                            <a href="{{ $barangMasuk->previousPageUrl() ?: '#' }}" class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm {{ $barangMasuk->onFirstPage() ? 'opacity-50 cursor-not-allowed pointer-events-none' : '' }}">
+                                Previous
+                            </a>
+
+                            @foreach ($barangMasuk->getUrlRange(1, $barangMasuk->lastPage()) as $page => $url)
+                                @if ($page == $barangMasuk->currentPage())
+                                    <span class="w-8 h-8 bg-blue-600 text-white rounded-lg text-sm font-bold flex items-center justify-center">{{ $page }}</span>
+                                @else
+                                    <a href="{{ $url }}" class="w-8 h-8 hover:bg-slate-100 text-slate-600 rounded-lg text-sm transition-all flex items-center justify-center">{{ $page }}</a>
+                                @endif
+                            @endforeach
+
+                            <a href="{{ $barangMasuk->nextPageUrl() ?: '#' }}" class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm {{ $barangMasuk->hasMorePages() ? '' : 'opacity-50 cursor-not-allowed pointer-events-none' }}">
+                                Next
+                            </a>
+                        </div>
+                    @endif
                 </div>
             </div>
         </main>
@@ -493,35 +507,9 @@
         </div>
     </div>
 
-    @if(session('toast_success'))
-        <div id="toast-success" class="fixed top-5 right-5 flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-xl shadow-2xl dark:text-gray-400 dark:bg-gray-800 transition-opacity duration-500 z-50 border border-slate-100" role="alert">
-            <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg">
-                <i class="fas fa-check text-sm"></i>
-                <span class="sr-only">Check icon</span>
-            </div>
-            <div class="ms-3 text-sm font-semibold text-slate-700">{{ session('toast_success') }}</div>
-            <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8" onclick="document.getElementById('toast-success').remove()">
-                <span class="sr-only">Close</span>
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-
-        <script>
-            setTimeout(function() {
-                let toast = document.getElementById('toast-success');
-                if (toast) {
-                    toast.style.opacity = '0';
-                    setTimeout(() => toast.remove(), 500);
-                }
-            }, 3500);
-        </script>
-    @endif
-
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    @include('layout.partials.aos-scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        AOS.init({ duration: 800, once: true, easing: 'ease-in-out' });
-
         // ── Helpers: show/hide modal ───────────────────────────────────────
         function showModal(id) {
             const el = document.getElementById(id);
@@ -891,6 +879,8 @@
         @if(session('error'))
             Toast.fire({ icon: 'error', title: "{{ session('error') }}" });
         @endif
+
     </script>
+    @include('layout.partials.ajax-list-search-init', ['indexUrl' => route('barang-masuk.index')])
 </body>
 </html>

@@ -65,7 +65,7 @@
                         </div>
                     </div>
                     <p class="text-sm text-slate-500 font-medium">Total Barang</p>
-                    <p class="text-3xl font-black text-slate-800">355</p>
+                    <p class="text-3xl font-black text-slate-800">{{ $totalBarang }}</p>
                 </div>
 
                 <div data-aos="fade-up" data-aos-delay="200" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
@@ -75,7 +75,7 @@
                         </div>
                     </div>
                     <p class="text-sm text-slate-500 font-medium">Barang Masuk</p>
-                    <p class="text-3xl font-black text-slate-800">120</p>
+                    <p class="text-3xl font-black text-slate-800">{{ $totalBarangMasuk }}</p>
                 </div>
 
                 <div data-aos="fade-up" data-aos-delay="300" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
@@ -85,7 +85,7 @@
                         </div>
                     </div>
                     <p class="text-sm text-slate-500 font-medium">Barang Keluar</p>
-                    <p class="text-3xl font-black text-slate-800">67</p>
+                    <p class="text-3xl font-black text-slate-800">{{ $totalBarangKeluar }}</p>
                 </div>
 
                 <div data-aos="fade-up" data-aos-delay="400" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
@@ -95,7 +95,7 @@
                         </div>
                     </div>
                     <p class="text-sm text-slate-500 font-medium">Total Supplier</p>
-                    <p class="text-3xl font-black text-slate-800">20</p>
+                    <p class="text-3xl font-black text-slate-800">{{ $totalSupplier }}</p>
                 </div>
             </div>
             <!-- End Cards -->
@@ -110,30 +110,36 @@
                         <thead class="bg-slate-50 text-slate-400 text-[10px] uppercase font-bold tracking-widest">
                             <tr>
                                 <th class="px-6 py-4">Kode Transaksi</th>
-                                <th class="px-6 py-4">Nama Barang</th>
+                                <th class="px-6 py-4">Nama Supplier</th>
                                 <th class="px-6 py-4">Tipe Transaksi</th>
                                 <th class="px-6 py-4">Waktu</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            <tr class="hover-row">
-                                <td class="px-6 py-4 font-mono text-xs text-blue-600 font-bold">BRGN-001</td>
-                                <td class="px-6 py-4 font-medium text-slate-700">Samsung Kulkas 2 Pintu RT47 465L</td>
-                                <td class="px-6 py-4">Barang Masuk</td>
-                                <td class="px-6 py-4 text-slate-500">12 Maret 2026, 14:20</td>
-                            </tr>
-                            <tr class="hover-row">
-                                <td class="px-6 py-4 font-mono text-xs text-blue-600 font-bold">BRGO-042</td>
-                                <td class="px-6 py-4 font-medium text-slate-700">LG GN-B202SQIB 2 Pintu 202L</td>
-                                <td class="px-6 py-4">Barang Keluar</td>
-                                <td class="px-6 py-4 text-slate-500">12 Maret 2026, 11:05</td>
-                            </tr>
-                            <tr class="hover-row">
-                                <td class="px-6 py-4 font-mono text-xs text-blue-600 font-bold">BRGN-015</td>
-                                <td class="px-6 py-4 font-medium text-slate-700">LG GN-B372SQBK 312L Inverter</td>
-                                <td class="px-6 py-4">Barang Masuk</td>
-                                <td class="px-6 py-4 text-slate-500">11 Maret 2026, 16:45</td>
-                            </tr>
+                        <tbody class="divide-y divide-slate-100 text-sm">
+                            @forelse($aktivitasTerakhir as $aktivitas)
+                                <tr class="hover-row">
+                                    <td class="px-6 py-4 font-mono text-xs text-blue-600 font-bold">
+                                        {{ $aktivitas['kode'] }}
+                                    </td>
+                                    <td class="px-6 py-4 font-medium text-slate-700">
+                                        {{ $aktivitas['nama_supplier'] }}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="px-2.5 py-1 text-xs font-medium rounded-full {{ $aktivitas['tipe'] === 'Barang Masuk' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-amber-50 text-amber-700 border border-amber-200' }}">
+                                            {{ $aktivitas['tipe'] }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-slate-500">
+                                        {{ $aktivitas['tanggal'] }}
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="px-6 py-8 text-center text-slate-400 italic">
+                                        Belum ada aktivitas transaksi terbaru.
+                                    </td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>

@@ -7,7 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 class BarangKeluar extends Model
 {
     protected $table = 'barang_keluar';
-    protected $fillable = ['barang_id', 'user_id', 'tgl_keluar', 'jumlah'];
+    protected $fillable = [
+        'kode_transaksi',
+        'barang_id',
+        'user_id',
+        'penerima',
+        'tgl_keluar',
+        'jumlah'
+    ];
     
     public $timestamps = false;
 
@@ -24,5 +31,10 @@ class BarangKeluar extends Model
     public function karyawan()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function unitBarang()
+    {
+        return $this->hasMany(UnitBarang::class, 'barang_keluar_id');
     }
 }
