@@ -16,7 +16,9 @@ class BarangManajerController extends Controller
         $search = $request->input('search');
         $kategori = $request->input('kategori');
 
-        $query = Barang::with(['kategori', 'unitBarang'])
+        $query = Barang::with(['kategori', 'unitBarang' => function($q) {
+            $q->whereNull('barang_keluar_id');
+        }])
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($subQuery) use ($search) {
                     $subQuery->where('nama', 'like', "%{$search}%")
