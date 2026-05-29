@@ -48,7 +48,7 @@
                     </nav>
                     <h2 class="text-2xl font-black text-slate-800 tracking-tight">Riwayat Barang Keluar</h2>
                 </div>
-                <button data-modal-target="modalTambahTransaksi" data-modal-toggle="modalTambahTransaksi" class="flex items-center gap-2 px-6 py-3 bg-blue-600 rounded-xl text-white font-semibold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
+                <button onclick="bukaTambah()" class="flex items-center gap-2 px-6 py-3 bg-blue-600 rounded-xl text-white font-semibold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
                     <i class="fas fa-plus"></i>
                     <span>Tambah Barang</span>
                 </button>
@@ -59,7 +59,7 @@
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors">
                         <i class="fas fa-search text-sm"></i>
                     </span>
-                    <input type="text" id="searchInput" class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" placeholder="Cari kode atau nama barang...">
+                    <input id="searchInput" type="text" value="{{ request('search') }}" class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" placeholder="Cari nama transaksi / supplier...">
                 </div>
             </div>
 
@@ -74,7 +74,7 @@
                                 <th class="px-8 py-5 text-[11px] uppercase tracking-widest font-bold text-slate-400 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-50" id="tableBody">
+                        <tbody class="divide-y divide-slate-50" id="ajax-list-tbody">
                             @forelse($barangKeluar as $item)
                             <tr class="hover-row group" data-id="{{ $item->id }}" data-nama="{{ $item->barang->nama ?? '' }}" data-kode="{{ $item->kode_transaksi }}">
                                 <td class="px-8 py-6 font-bold text-slate-800 uppercase tracking-tight">{{ $item->kode_transaksi }}</td>
@@ -162,7 +162,7 @@
                             <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Tambahkan transaksi barang keluar ke sistem</p>
                         </div>
                     </div>
-                    <button type="button" class="text-slate-400 bg-transparent hover:bg-slate-100 hover:text-slate-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center transition-colors" data-modal-hide="modalTambahTransaksi">
+                    <button type="button" onclick="hideModal('modalTambahTransaksi')" class="text-slate-400 bg-transparent hover:bg-slate-100 hover:text-slate-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center transition-colors" data-modal-hide="modalTambahTransaksi">
                         <i class="fas fa-times text-lg"></i>
                     </button>
                 </div>
@@ -216,7 +216,7 @@
                     </div>
 
                     <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-100 mt-6">
-                        <button data-modal-hide="modalTambahTransaksi" type="button" class="px-8 py-2.5 bg-slate-100 text-slate-500 rounded-xl font-bold hover:bg-slate-200 transition-all text-sm">
+                        <button onclick="hideModal('modalTambahTransaksi')" type="button" class="px-8 py-2.5 bg-slate-100 text-slate-500 rounded-xl font-bold hover:bg-slate-200 transition-all text-sm">
                             Batal
                         </button>
                         <button type="submit" id="btnSubmitTambah" disabled
@@ -468,6 +468,28 @@
             el.classList.remove('flex');
         }
 
+        function bukaTambah() {
+            currentBarangKeluarId = null; 
+            
+            activeUnitMode = 'add';
+            activeUnitIndex = null;
+            
+            addUnitList.length = 0; 
+            renderUnitTable('add');
+            rebuildHiddenFields('add');
+            
+            // 4. Kosongkan form input
+            document.getElementById('formTambah').reset();
+            document.getElementById('input-sn').value = '';
+            const snError = document.getElementById('sn-error');
+            if (snError) {
+                snError.classList.add('hidden');
+                snError.textContent = '';
+            }
+            
+            showModal('modalTambahTransaksi'); 
+        }
+
         function bukaDetail(data) {
             document.getElementById('detail-jumlah').value = data.jumlah + ' Unit' || '-';
             document.getElementById('detail-tgl').value = new Date(data.tgl).toLocaleDateString('id-ID') || '-';
@@ -494,22 +516,6 @@
             showModal('modalDetail');
         }
 
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('keyup', function() {
-            const searchTerm = this.value.toLowerCase();
-            const rows = document.querySelectorAll('#tableBody tr');
-            
-            rows.forEach(row => {
-                const namaBarang = row.getAttribute('data-nama').toLowerCase();
-                const kodeTransaksi = (row.getAttribute('data-kode') || '').toLowerCase();
-                if (namaBarang.includes(searchTerm) || kodeTransaksi.includes(searchTerm)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        });
-
         const Toast = Swal.mixin({
             toast: true,
             position: 'top-end',
@@ -525,7 +531,6 @@
             Toast.fire({ icon: 'error', title: "{{ session('error') }}" });
         @endif
         
-        // ── MODAL TAMBAH / EDIT — buka modalInputUnit ────────────────────────────
         const addUnitList = [];
         let editUnitList = [];
         let activeUnitMode = 'add';
@@ -746,5 +751,6 @@
             showModal('modalDelete');
         }
     </script>
+    @include('layout.partials.ajax-list-search-init', ['indexUrl' => route('barang-keluar.index')])
 </body>
 </html>

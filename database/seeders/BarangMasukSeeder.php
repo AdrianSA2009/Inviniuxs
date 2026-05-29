@@ -12,12 +12,10 @@ class BarangMasukSeeder extends Seeder
     {
         $faker = Faker::create('id_ID');
         
-        // Ambil semua ID barang secara berurutan agar tidak ada yang terlewat
         $barangIds = DB::table('barang')->pluck('id')->toArray();
         $supplierIds = DB::table('suppliers')->pluck('id')->toArray();
         $karyawanIds = DB::table('karyawan')->pluck('id')->toArray();
 
-        // Cek jika data supplier atau karyawan masih kosong untuk menghindari error
         $fallbackSupplierId = !empty($supplierIds) ? null : DB::table('suppliers')->insertGetId([
             'nama' => 'Supplier Utama',
             'created_at' => now(),
