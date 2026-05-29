@@ -23,7 +23,9 @@ class BarangAdminController extends Controller
         $search = $request->input('search');
         $kategori = $request->input('kategori'); 
 
-        $query = Barang::with(['kategori', 'unitBarang'])
+        $query = Barang::with(['kategori', 'unitBarang' => function($q) {
+            $q->whereNull('barang_keluar_id');
+        }])
             ->when($search, function ($q) use ($search) {
                 $q->where(function($subQuery) use ($search) {
                     $subQuery->where('nama', 'like', "%{$search}%")
@@ -31,8 +33,6 @@ class BarangAdminController extends Controller
                 });
             })
             ->when($kategori, function ($q) use ($kategori) {
-                // HAPUS blok whereHas('kategori', ...)
-                // Cukup gunakan where() langsung ke kolom kategori_id
                 $q->where('kategori_id', $kategori);
             });
 
