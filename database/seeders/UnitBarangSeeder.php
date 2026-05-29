@@ -24,8 +24,6 @@ class UnitBarangSeeder extends Seeder
                     'barang_id' => $masuk->barang_id,
                     'barang_masuk_id' => $masuk->id,
                     'serial_number' => 'SN' . strtoupper(Str::random(6)) . ($index + 1) . ($j + 1),
-                    // Jika Anda ingin semua unit awal berstatus 'tersedia', ubah elemen array di bawah ini
-                    'status' => $faker->randomElement(['tersedia', 'terjual', 'rusak']),
                 ]);
             }
 
