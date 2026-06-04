@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Barang;
 use App\Models\BarangMasuk;
+use App\Models\BarangKeluar;
 use App\Models\Supplier;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -16,7 +17,7 @@ class DashboardManajerController extends Controller
     {
         $totalBarang = Barang::count(); 
         $totalBarangMasuk = BarangMasuk::sum('jumlah') ?? 0;
-        $totalBarangKeluar = DB::table('barang_keluar')->sum('jumlah') ?? 0; 
+        $totalBarangKeluar = BarangKeluar::sum('jumlah') ?? 0; 
         $totalSupplier = Supplier::count();
 
         $barangMasukAktivitas = BarangMasuk::with('supplier')
@@ -26,22 +27,20 @@ class DashboardManajerController extends Controller
             ->map(function ($item) {
                 return [
                     'kode' => $item->kode_transaksi,
-                    'nama_supplier' => $item->supplier->nama ?? '-',
+                    'penerima' => $item->supplier->nama ?? '-',
                     'tipe' => 'Barang Masuk',
                     'tanggal' => Carbon::parse($item->tgl_masuk)->translatedFormat('d F Y'),
                     'raw_date' => $item->tgl_masuk
                 ];
             });
 
-        $barangKeluarAktivitas = DB::table('barang_keluar')
-            ->orderBy('tgl_keluar', 'desc')
+        $barangKeluarAktivitas = BarangKeluar::orderBy('tgl_keluar', 'desc')
             ->take(3)
             ->get()
             ->map(function ($item) {
-                
                 return [
                     'kode' => $item->kode_transaksi,
-                    'nama_supplier' => '-', 
+                    'penerima' => $item->penerima ?? '-',
                     'tipe' => 'Barang Keluar',
                     'tanggal' => Carbon::parse($item->tgl_keluar)->translatedFormat('d F Y'),
                     'raw_date' => $item->tgl_keluar

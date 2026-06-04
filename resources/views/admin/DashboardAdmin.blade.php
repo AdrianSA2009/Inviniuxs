@@ -117,7 +117,7 @@
                         <thead class="bg-slate-50 text-slate-400 text-[10px] uppercase font-bold tracking-widest">
                             <tr>
                                 <th class="px-6 py-4">Kode Transaksi</th>
-                                <th class="px-6 py-4">Nama Supplier</th>
+                                <th class="px-6 py-4">Nama Supplier/Penerima</th>
                                 <th class="px-6 py-4">Tipe Transaksi</th>
                                 <th class="px-6 py-4">Waktu</th>
                             </tr>
@@ -129,7 +129,7 @@
                                         {{ $aktivitas['kode'] }}
                                     </td>
                                     <td class="px-6 py-4 font-medium text-slate-700">
-                                        {{ $aktivitas['nama_supplier'] }}
+                                        {{ $aktivitas['penerima'] }}
                                     </td>
                                     <td class="px-6 py-4">
                                         <span class="px-2.5 py-1 text-xs font-medium rounded-full {{ $aktivitas['tipe'] === 'Barang Masuk' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-amber-50 text-amber-700 border border-amber-200' }}">
