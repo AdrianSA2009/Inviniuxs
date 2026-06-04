@@ -12,5 +12,10 @@ class Supplier extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['nama', 'telepon', 'alamat'];
+    protected $fillable = ['nama', 'alamat', 'no_telp'];
+
+    public function barangMasuk()
+    {
+        return $this->hasMany(\App\Models\BarangMasuk::class, 'supplier_id');
+    }
 }

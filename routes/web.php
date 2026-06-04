@@ -31,7 +31,9 @@ Route::middleware('auth')->group(function () {
         Route::resource('kategori', kategoriController::class)
             ->only(['index', 'store', 'update', 'destroy'])
             ->names('admin.kategori');
-        Route::get('/supplier', [suppliercontroller::class, 'index'])->name('supplier');
+        Route::resource('supplier', suppliercontroller::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->names('admin.supplier');
         
         Route::get('/barangmasuk', [BarangMasukController::class, 'index'])->name('barang-masuk.index');
         Route::post('/barangmasuk', [BarangMasukController::class, 'store'])->name('barang-masuk.store');
