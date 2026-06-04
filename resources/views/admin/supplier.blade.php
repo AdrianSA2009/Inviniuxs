@@ -63,51 +63,57 @@
             </div>
 
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+                <div class="px-6 py-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-100">
+                    <form action="{{ route('admin.supplier.index') }}" method="GET" class="relative w-full md:max-w-sm">
+                        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input name="search" value="{{ request('search') }}" type="text" class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold" placeholder="Cari nama, alamat, atau telepon">
+                    </form>
+                    <p class="text-sm text-slate-500">Menampilkan {{ $suppliers->count() }} dari {{ $suppliers->total() }} supplier</p>
+                </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-50/50 border-b border-slate-100">
                                 <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400 text-center">No</th>
-                                <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400 text-center">Nama</th>
-                                <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Jenis Barang</th>
-                                <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400 text-center">Alamat</th>
+                                <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Nama Supplier</th>
+                                <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">No. HP</th>
+                                <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Alamat</th>
                                 <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400 text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            <tr class="group hover:bg-slate-50/50 transition-all">
-                                <td class="px-6 py-4 text-slate-500 font-medium text-center text-sm">1</td>
-
-                                <td class="px-6 py-4 text-slate-700 text-center font-medium text-sm">
-                                    Panasonic NR-BB201Q-S 2 Pintu
-                                </td>
-
-                                <td class="px-6 py-4 text-slate-600 font-medium text-center text-center">
-                                    Kulkas
-                                </td>
-
-                                <td class="px-6 py-4 text-center">
-                                    <p class="text-sm text-slate-600 font-medium">PT Panasonic Gobel Indonesia</p>
-                                </td>
-
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center justify-center gap-3">
-                                        <i class="fas fa-edit text-slate-400 cursor-pointer hover:text-amber-500 transition-colors" data-modal-target="modalEdit" data-modal-toggle="modalEdit"></i>
-                                        <i class="fas fa-trash text-slate-400 cursor-pointer hover:text-red-500 transition-colors" data-modal-target="modalDelete" data-modal-toggle="modalDelete"></i>
-                                        <i class="fas fa-eye text-slate-400 cursor-pointer hover:text-blue-500 transition-colors" data-modal-target="modalDetailSupplier" data-modal-toggle="modalDetailSupplier"></i>
-                                    </div>
-                                </td>
-                            </tr>
+                            @forelse($suppliers as $supplier)
+                                <tr class="group hover:bg-slate-50/50 transition-all">
+                                    <td class="px-6 py-4 text-slate-500 font-medium text-center text-sm">{{ $loop->iteration + ($suppliers->currentPage() - 1) * $suppliers->perPage() }}</td>
+                                    <td class="px-6 py-4 text-slate-700 font-medium text-sm">{{ $supplier->nama }}</td>
+                                    <td class="px-6 py-4 text-slate-600 font-medium text-sm">{{ $supplier->no_telp }}</td>
+                                    <td class="px-6 py-4 text-slate-600 text-sm">{{ \Illuminate\Support\Str::limit($supplier->alamat, 80) }}</td>
+                                    <td class="px-6 py-4 text-center">
+                                        <div class="flex items-center justify-center gap-3">
+                                            <button type="button" onclick="openEditModal({{ $supplier->id }}, @json($supplier->nama), @json($supplier->no_telp), @json($supplier->alamat))" class="text-slate-400 hover:text-amber-500 transition-colors" aria-label="Edit Supplier">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button type="button" onclick="openDeleteModal({{ $supplier->id }})" class="text-slate-400 hover:text-red-500 transition-colors" aria-label="Hapus Supplier">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                            <button type="button" onclick="openDetailModal(@json($supplier->nama), @json($supplier->no_telp), @json($supplier->alamat))" class="text-slate-400 hover:text-blue-500 transition-colors" aria-label="Lihat Detail Supplier">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="px-6 py-10 text-center text-slate-500">Tidak ada supplier yang ditemukan.</td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
                 <div class="p-6 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <p class="text-sm text-slate-500">Menampilkan 1 dari 15 barang</p>
+                    <p class="text-sm text-slate-500">Halaman {{ $suppliers->currentPage() }} dari {{ $suppliers->lastPage() }}</p>
                     <div class="flex items-center gap-2">
-                        <button class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm">Previous</button>
-                        <button class="w-8 h-8 bg-blue-600 text-white rounded-lg text-sm font-bold">1</button>
-                        <button class="w-8 h-8 hover:bg-slate-100 text-slate-600 rounded-lg text-sm transition-all">2</button>
-                        <button class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm">Next</button>
+                        {{ $suppliers->withQueryString()->links('vendor.pagination.simple-tailwind') }}
                     </div>
                 </div>
             </div>
@@ -115,7 +121,7 @@
     </div>
 
     <div id="modalTambahSupplier" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div id="closeModalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>      
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
         <div class="relative p-4 w-full max-w-2xl max-h-full">
             <div class="relative bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden">
                 <div class="flex items-start justify-between p-6 border-b border-slate-100">
@@ -125,7 +131,7 @@
                         </div>
                         <div>
                             <h3 class="text-xl font-bold text-slate-800">Supplier Baru</h3>
-                            <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Tambahkan jenis barang ke sistem</p>
+                            <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Tambahkan supplier baru ke inventaris</p>
                         </div>
                     </div>
                     <button type="button" class="text-slate-400 bg-transparent hover:bg-slate-100 hover:text-slate-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center transition-colors" data-modal-hide="modalTambahSupplier">
@@ -133,32 +139,25 @@
                     </button>
                 </div>
 
-                <form class="p-8">
+                <form id="addSupplierForm" action="{{ route('admin.supplier.store') }}" method="POST" class="p-8">
+                    @csrf
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div>
                             <label class="block mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nama Supplier</label>
-                            <input type="text" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all" placeholder="Masukkan nama supplier" required>
-                        </div>
-                        <div>
-                            <label class="block mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nama Barang</label>
-                            <input type="text" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all" placeholder="Masukkan nama barang" required>
-                        </div>
-                        <div>
-                            <label class="block mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jenis Barang</label>
-                            <select class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all">
-                                <option value="Kulkas" selected>Kulkas</option>
-                                <option value="AC">AC</option>
-                            </select>
+                            <input type="text" name="nama" value="{{ old('nama') }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all" placeholder="Masukkan nama supplier" required>
+                            @error('nama')<span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>@enderror
                         </div>
                         <div>
                             <label class="block mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">No. HP</label>
-                            <input type="text" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all" placeholder="Masukkan No.HP" required>
+                            <input type="text" name="no_telp" value="{{ old('no_telp') }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all" placeholder="Masukkan nomor telepon" required>
+                            @error('no_telp')<span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>@enderror
                         </div>
                     </div>
 
                     <div class="mb-8">
                         <label class="block mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Alamat</label>
-                        <textarea rows="3" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all resize-none" placeholder="Masukkan alamat" required></textarea>
+                        <textarea name="alamat" rows="3" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all resize-none" placeholder="Masukkan alamat" required>{{ old('alamat') }}</textarea>
+                        @error('alamat')<span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>@enderror
                     </div>
 
                     <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
@@ -175,7 +174,7 @@
     </div>
 
     <div id="modalEdit" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full transition-all duration-300">
-        <div id="closeModalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
         <div class="relative p-4 w-full max-w-2xl max-h-full">
             <div class="relative bg-white rounded-2xl shadow-2xl overflow-hidden">
                 <div class="flex items-start justify-between p-6">
@@ -190,32 +189,27 @@
                     </button>
                 </div>
 
-                <form class="px-8 py-4">
+                <form id="editSupplierForm" action="" method="POST" class="px-8 py-4">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" id="editSupplierId" name="id" value="{{ old('id') }}">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div>
                             <label class="block mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nama Supplier</label>
-                            <input type="text" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all text-slate-700" value="PT Panasonic Gobel Indonesia" required>
-                        </div>
-                        <div>
-                            <label class="block mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nama Barang</label>
-                            <input type="text" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all text-slate-700" value="Panasonic NR-BB201 Q-S 2 Pintu" required>
-                        </div>
-                        <div>
-                            <label class="block mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jenis Barang</label>
-                            <select class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all">
-                                <option value="Kulkas" selected>Kulkas</option>
-                                <option value="AC">AC</option>
-                            </select>
+                            <input id="editNama" type="text" name="nama" value="{{ old('nama') }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all text-slate-700" placeholder="Masukkan nama supplier" required>
+                            @error('nama')<span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>@enderror
                         </div>
                         <div>
                             <label class="block mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">No. HP</label>
-                            <input type="text" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all text-slate-700" value="082189400501" required>
+                            <input id="editPhone" type="text" name="no_telp" value="{{ old('no_telp') }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all text-slate-700" placeholder="Masukkan nomor telepon" required>
+                            @error('no_telp')<span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>@enderror
                         </div>
                     </div>
 
                     <div class="mb-8">
                         <label class="block mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Alamat</label>
-                        <textarea rows="3" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all resize-none text-slate-600 leading-relaxed" required>PT Panasonic Gobel Indonesia. Kawasan Industri Gobel Cibitung, Jl. Teuku Umar KM 44, Telaga Asih, Cikarang Barat, Bekasi 17520, Jawa Barat.</textarea>
+                        <textarea id="editAddress" name="alamat" rows="3" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all resize-none text-slate-600 leading-relaxed" placeholder="Masukkan alamat" required>{{ old('alamat') }}</textarea>
+                        @error('alamat')<span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>@enderror
                     </div>
 
                     <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
@@ -232,7 +226,7 @@
     </div>
 
     <div id="modalDetailSupplier" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full transition-all duration-300">
-        <div id="closeModalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
         <div class="relative p-4 w-full max-w-2xl max-h-full">
             <div class="relative bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-100">
                 <div class="flex items-center justify-between p-6 border-b border-slate-100">
@@ -240,7 +234,7 @@
                         <div class="w-10 h-10 bg-sky-500 rounded-lg flex items-center justify-center text-white shadow-lg shadow-sky-100">
                             <i class="fas fa-file-alt text-lg"></i>
                         </div>
-                        <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Rincian Inventaris</h2>
+                        <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Rincian Supplier</h2>
                     </div>
                     <button type="button" data-modal-hide="modalDetailSupplier" class="text-slate-400 hover:text-slate-600 transition-colors">
                         <i class="fas fa-times text-2xl"></i>
@@ -251,37 +245,15 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                         <div class="space-y-2">
                             <label class="block text-[12px] font-bold text-slate-900 uppercase tracking-[0.15em]">Nama Supplier</label>
-                            <div class="w-full px-5 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl text-sm font-semibold text-slate-600 shadow-sm">
-                                PT Panasonic Gobel Indonesia
-                            </div>
+                            <div id="detail-name" class="w-full px-5 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl text-sm font-semibold text-slate-600 shadow-sm"></div>
                         </div>
-
-                        <div class="space-y-2">
-                            <label class="block text-[12px] font-bold text-slate-900 uppercase tracking-[0.15em]">Nama Barang</label>
-                            <div class="w-full px-5 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl text-sm font-semibold text-slate-600 shadow-sm">
-                                Panasonic NR-BB201 Q-S 2 Pintu
-                            </div>
-                        </div>
-
-                        <div class="space-y-2">
-                            <label class="block text-[12px] font-bold text-slate-900 uppercase tracking-[0.15em]">Jenis Barang</label>
-                            <div class="w-full px-5 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl text-sm font-semibold text-slate-600 shadow-sm">
-                                Kulkas
-                            </div>
-                        </div>
-
                         <div class="space-y-2">
                             <label class="block text-[12px] font-bold text-slate-900 uppercase tracking-[0.15em]">No. HP</label>
-                            <div class="w-full px-5 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl text-sm font-semibold text-slate-600 shadow-sm">
-                                082189400501
-                            </div>
+                            <div id="detail-phone" class="w-full px-5 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl text-sm font-semibold text-slate-600 shadow-sm"></div>
                         </div>
-                    </div>
-
-                    <div class="space-y-2 mb-4">
-                        <label class="block text-[12px] font-bold text-slate-900 uppercase tracking-[0.15em]">Alamat</label>
-                        <div class="w-full px-5 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl text-sm font-semibold text-slate-600 leading-relaxed shadow-sm">
-                            PT Panasonic Gobel Indonesia. Kawasan Industri Gobel Cibitung, Jl. Teuku Umar KM 44, Telaga Asih, Cikarang Barat, Bekasi 17520, Jawa Barat.
+                        <div class="space-y-2 md:col-span-2">
+                            <label class="block text-[12px] font-bold text-slate-900 uppercase tracking-[0.15em]">Alamat</label>
+                            <div id="detail-address" class="w-full px-5 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl text-sm font-semibold text-slate-600 leading-relaxed shadow-sm"></div>
                         </div>
                     </div>
                 </div>
@@ -296,7 +268,7 @@
     </div>
 
     <div id="modalDelete" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div id="closeDeleteOverlay" class="fixed inset-0 bg-red-900/20 backdrop-blur-sm transition-opacity"></div>
+        <div class="fixed inset-0 bg-red-900/20 backdrop-blur-sm transition-opacity"></div>
         <div class="relative bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl overflow-hidden text-center border-4 border-red-50 mx-auto">
             <div class="p-10">
                 <div class="relative w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -305,16 +277,19 @@
                 </div>
                 <h3 class="text-2xl font-black text-slate-800 mb-3">Hapus Data?</h3>
                 <p class="text-slate-500 text-sm mb-8">Data akan dihapus secara permanen.</p>
-                <div class="space-y-3">
-                    <button class="w-full py-4 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-200">Ya, Hapus Sekarang</button>
-                    <button data-modal-hide="modalDelete" class="w-full py-4 bg-white text-slate-400 rounded-2xl font-bold hover:text-slate-600 transition-all">Cancel Action</button>
-                </div>
+                <form id="deleteSupplierForm" action="" method="POST" class="space-y-3">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="w-full py-4 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-200">Ya, Hapus Sekarang</button>
+                    <button type="button" data-modal-hide="modalDelete" class="w-full py-4 bg-white text-slate-400 rounded-2xl font-bold hover:text-slate-600 transition-all">Batal</button>
+                </form>
             </div>
         </div>
     </div>
 
 
     @include('layout.partials.aos-scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         const sidebar = document.getElementById('sidebar-multi-level-sidebar');
         const customOverlay = document.getElementById('sidebar-overlay-custom');
@@ -330,6 +305,70 @@
         });
     
         observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
+
+        function openEditModal(id, nama, no_telp, alamat) {
+            const modal = document.getElementById('modalEdit');
+            const form = document.getElementById('editSupplierForm');
+            const inputId = document.getElementById('editSupplierId');
+
+            document.getElementById('editNama').value = nama;
+            document.getElementById('editPhone').value = no_telp;
+            document.getElementById('editAddress').value = alamat;
+            inputId.value = id;
+            form.action = `/admin/supplier/${id}`;
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function openDetailModal(nama, no_telp, alamat) {
+            document.getElementById('detail-name').textContent = nama;
+            document.getElementById('detail-phone').textContent = no_telp;
+            document.getElementById('detail-address').textContent = alamat;
+
+            const modal = document.getElementById('modalDetailSupplier');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function openDeleteModal(id) {
+            const form = document.getElementById('deleteSupplierForm');
+            form.action = `/admin/supplier/${id}`;
+            const modal = document.getElementById('modalDelete');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+
+        @if(session('toast_success'))
+            Toast.fire({
+                icon: 'success',
+                title: "{{ session('toast_success') }}"
+            });
+        @endif
+
+        document.addEventListener('DOMContentLoaded', function() {
+            @if($errors->any())
+                @if(old('_method') == 'PUT' && old('id'))
+                    openEditModal({{ old('id') }}, @json(old('nama')), @json(old('no_telp')), @json(old('alamat')));
+                @else
+                    const modal = document.getElementById('modalTambahSupplier');
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                @endif
+            @endif
+        });
     </script>
 </body>
 </html>

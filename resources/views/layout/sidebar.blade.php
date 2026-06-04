@@ -37,8 +37,8 @@
             </a>
     
             {{-- Data Supplier --}}
-            <a href="{{ route('supplier') }}" 
-               class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all group {{ request()->routeIs('supplier') ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white glass-hover' }}">
+            <a href="{{ route('admin.supplier.index') }}" 
+               class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all group {{ request()->routeIs('admin.supplier.*') ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white glass-hover' }}">
                 <i class="fas fa-truck w-5 text-center group-hover:scale-110 transition-transform"></i>
                 <span>Data Supplier</span>
             </a>
