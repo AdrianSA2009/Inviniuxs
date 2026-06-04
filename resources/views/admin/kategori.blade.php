@@ -47,34 +47,6 @@
         </header>
 
         <main class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-slate-50">
-            <!-- Alert Messages -->
-            @if ($message = Session::get('success'))
-                <div class="bg-green-50 border border-green-200 rounded-2xl p-4 flex items-center gap-3" data-aos="fade-down">
-                    <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-green-600 flex-shrink-0">
-                        <i class="fas fa-check text-lg"></i>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-green-800 font-semibold text-sm">{{ $message }}</p>
-                    </div>
-                    <button onclick="this.parentElement.style.display='none'" class="text-green-400 hover:text-green-600">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            @endif
-
-            @if ($message = Session::get('error'))
-                <div class="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3" data-aos="fade-down">
-                    <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center text-red-600 flex-shrink-0">
-                        <i class="fas fa-exclamation-circle text-lg"></i>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-red-800 font-semibold text-sm">{{ $message }}</p>
-                    </div>
-                    <button onclick="this.parentElement.style.display='none'" class="text-red-400 hover:text-red-600">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            @endif
 
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4" data-aos="fade-down">
                 <div>

@@ -59,31 +59,26 @@ class BarangKeluarController extends Controller
                 return redirect()->back()->with('error', 'Beberapa unit sudah tidak tersedia atau tidak valid.');
             }
 
-            // 1. BUAT 1 TRANSAKSI SAJA (TIDAK DIPECAH)
             $dateStr = date('Ymd', strtotime($request->tgl_keluar));
             $randomSeq = str_pad(rand(1, 999), 3, '0', STR_PAD_LEFT);
             
             $barangKeluar = new BarangKeluar();
             $barangKeluar->kode_transaksi = "OUT-{$dateStr}-{$randomSeq}";
-            // Ambil barang_id dari barang pertama sebagai perwakilan di tabel transaksi
             $barangKeluar->barang_id = $units->first()->barang_id; 
             $barangKeluar->user_id = Auth::id(); 
             $barangKeluar->penerima = $request->penerima;
-            $barangKeluar->jumlah = $units->count(); // Total semua barang
+            $barangKeluar->jumlah = $units->count();
             $barangKeluar->tgl_keluar = $request->tgl_keluar;
             $barangKeluar->save();
 
-            // 2. POTONG STOK MASING-MASING JENIS BARANG DENGAN BENAR
             $groupedUnits = $units->groupBy('barang_id');
             foreach ($groupedUnits as $barangId => $group) {
-                // Potong stok master
                 $b = Barang::find($barangId);
                 if ($b) {
                     $b->stok -= $group->count();
                     $b->save();
                 }
 
-                // Pasangkan ID transaksi ke setiap unit
                 foreach ($group as $unit) {
                     $unit->barang_keluar_id = $barangKeluar->id;
                     $unit->save();
