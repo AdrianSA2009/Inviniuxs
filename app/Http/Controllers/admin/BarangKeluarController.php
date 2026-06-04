@@ -23,7 +23,7 @@ class BarangKeluarController extends Controller
                   ->orWhere('penerima', 'like', "%{$search}%");
             });
         })
-        ->with(['barang.kategori', 'karyawan', 'unitBarang'])
+        ->with(['barang.kategori', 'karyawan', 'unitBarang.barang']) 
         ->orderBy('tgl_keluar', 'desc')
         ->paginate(10)
         ->withQueryString();
@@ -40,57 +40,50 @@ class BarangKeluarController extends Controller
             'penerima' => 'required|string|max:255',
             'tgl_keluar' => 'required|date',
             'serial_number' => 'required|array|min:1',
-            'serial_number.*' => 'required|string',
-        ], [
-            'penerima.required' => 'Penerima harus diisi',
-            'tgl_keluar.required' => 'Tanggal keluar harus diisi',
-            'serial_number.required' => 'Daftar unit tidak boleh kosong',
+            'serial_number.*' => 'required|string|exists:unit_barang,serial_number',
         ]);
 
-        $validator->validate();
-
-        $serialNumbers = collect($request->input('serial_number', []))
-            ->map(fn($sn) => strtoupper(trim($sn)))
-            ->filter()
-            ->unique()
-            ->all();
-
-        $units = UnitBarang::whereIn('serial_number', $serialNumbers)->get();
-
-        if ($units->count() !== count($serialNumbers)) {
-            return redirect()->back()->with('error', 'Beberapa serial number tidak ditemukan dalam sistem.');
-        }
-
-        $unavailable = $units->filter(fn($unit) => $unit->barang_keluar_id !== null);
-        if ($unavailable->isNotEmpty()) {
-            return redirect()->back()->with('error', 'Beberapa unit tidak tersedia (mungkin sudah keluar atau rusak).');
+        if ($validator->fails()) {
+            return redirect()->back()->with('error', 'Data tidak lengkap atau Serial Number tidak valid.');
         }
 
         DB::beginTransaction();
 
         try {
-            $tanggal = date('Ymd', strtotime($request->tgl_keluar));
-            $hitungTransaksi = BarangKeluar::where('tgl_keluar', $request->tgl_keluar)->distinct('kode_transaksi')->count('kode_transaksi') + 1;
-            $kodeTransaksi = 'OUT-' . $tanggal . '-' . str_pad($hitungTransaksi, 3, '0', STR_PAD_LEFT);
+            $serialNumbers = $request->input('serial_number');
+            $units = UnitBarang::whereIn('serial_number', $serialNumbers)
+                               ->whereNull('barang_keluar_id')
+                               ->get();
 
+            if ($units->count() != count($serialNumbers)) {
+                return redirect()->back()->with('error', 'Beberapa unit sudah tidak tersedia atau tidak valid.');
+            }
+
+            // 1. BUAT 1 TRANSAKSI SAJA (TIDAK DIPECAH)
+            $dateStr = date('Ymd', strtotime($request->tgl_keluar));
+            $randomSeq = str_pad(rand(1, 999), 3, '0', STR_PAD_LEFT);
+            
+            $barangKeluar = new BarangKeluar();
+            $barangKeluar->kode_transaksi = "OUT-{$dateStr}-{$randomSeq}";
+            // Ambil barang_id dari barang pertama sebagai perwakilan di tabel transaksi
+            $barangKeluar->barang_id = $units->first()->barang_id; 
+            $barangKeluar->user_id = Auth::id(); 
+            $barangKeluar->penerima = $request->penerima;
+            $barangKeluar->jumlah = $units->count(); // Total semua barang
+            $barangKeluar->tgl_keluar = $request->tgl_keluar;
+            $barangKeluar->save();
+
+            // 2. POTONG STOK MASING-MASING JENIS BARANG DENGAN BENAR
             $groupedUnits = $units->groupBy('barang_id');
-
             foreach ($groupedUnits as $barangId => $group) {
-                $jumlah = $group->count();
-                
-                $barangKeluar = BarangKeluar::create([
-                    'kode_transaksi' => $kodeTransaksi,
-                    'barang_id' => $barangId,
-                    'user_id' => Auth::id() ?? 1,
-                    'penerima' => $request->penerima,
-                    'tgl_keluar' => $request->tgl_keluar,
-                    'jumlah' => $jumlah,
-                ]);
+                // Potong stok master
+                $b = Barang::find($barangId);
+                if ($b) {
+                    $b->stok -= $group->count();
+                    $b->save();
+                }
 
-                $barang = Barang::find($barangId);
-                $barang->stok -= $jumlah;
-                $barang->save();
-
+                // Pasangkan ID transaksi ke setiap unit
                 foreach ($group as $unit) {
                     $unit->barang_keluar_id = $barangKeluar->id;
                     $unit->save();
@@ -104,7 +97,7 @@ class BarangKeluarController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'gagal menyimpan transaksi: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal menyimpan transaksi: ' . $e->getMessage());
         }
     }
 
@@ -143,12 +136,8 @@ class BarangKeluarController extends Controller
             'tgl_keluar' => 'required|date',
             'serial_number' => 'required|array|min:1',
             'serial_number.*' => 'required|string',
-        ], [
-            'penerima.required' => 'Penerima harus diisi',
-            'tgl_keluar.required' => 'Tanggal keluar harus diisi',
-            'serial_number.required' => 'Daftar unit tidak boleh kosong',
         ]);
-
+        
         $validator->validate();
 
         $serialNumbers = collect($request->input('serial_number', []))
@@ -157,75 +146,50 @@ class BarangKeluarController extends Controller
             ->unique()
             ->all();
 
-        $units = UnitBarang::whereIn('serial_number', $serialNumbers)->get();
+        $unitsCheck = UnitBarang::whereIn('serial_number', $serialNumbers)->get();
 
-        if ($units->count() !== count($serialNumbers)) {
+        if ($unitsCheck->count() !== count($serialNumbers)) {
             return redirect()->back()->with('error', 'Beberapa serial number tidak ditemukan dalam sistem.');
         }
 
-        $invalidUnits = $units->filter(function($unit) use ($barangKeluar) {
+        $invalidUnits = $unitsCheck->filter(function($unit) use ($barangKeluar) {
             return $unit->barang_keluar_id !== null && $unit->barang_keluar_id !== $barangKeluar->id;
         });
 
         if ($invalidUnits->isNotEmpty()) {
-            return redirect()->back()->with('error', 'Beberapa unit tidak tersedia (sudah keluar di transaksi lain atau rusak).');
+            return redirect()->back()->with('error', 'Beberapa unit tidak tersedia (sudah keluar).');
         }
 
         DB::beginTransaction();
 
         try {
+            // 1. KEMBALIKAN STOK LAMA 
             $oldUnits = UnitBarang::where('barang_keluar_id', $barangKeluar->id)->get();
-            $oldBarangId = $barangKeluar->barang_id;
-            $kodeTransaksi = $barangKeluar->kode_transaksi;
-            
-            $oldBarang = Barang::find($oldBarangId);
-            if ($oldBarang) {
-                $oldBarang->stok += $oldUnits->count();
-                $oldBarang->save();
+            foreach ($oldUnits->groupBy('barang_id') as $bId => $group) {
+                Barang::where('id', $bId)->increment('stok', $group->count());
             }
 
-            foreach ($oldUnits as $u) {
-                $u->barang_keluar_id = null;
-                $u->save();
+            // Lepaskan unit menggunakan Mass Update (Menghindari bug memori Laravel)
+            UnitBarang::where('barang_keluar_id', $barangKeluar->id)->update([
+                'barang_keluar_id' => null
+            ]);
+
+            // 2. UPDATE TRANSAKSI UTAMA
+            $barangKeluar->penerima = $request->penerima;
+            $barangKeluar->tgl_keluar = $request->tgl_keluar;
+            $barangKeluar->barang_id = $unitsCheck->first()->barang_id; 
+            $barangKeluar->jumlah = count($serialNumbers);
+            $barangKeluar->save();
+
+            // 3. POTONG STOK BARU
+            foreach ($unitsCheck->groupBy('barang_id') as $bId => $group) {
+                Barang::where('id', $bId)->decrement('stok', $group->count());
             }
 
-            $groupedUnits = $units->groupBy('barang_id');
-            $isFirst = true;
-
-            foreach ($groupedUnits as $barangId => $group) {
-                $jumlah = $group->count();
-                $b = Barang::find($barangId);
-                $b->stok -= $jumlah;
-                $b->save();
-
-                if ($isFirst) {
-                    $barangKeluar->update([
-                        'kode_transaksi' => $kodeTransaksi,
-                        'barang_id' => $barangId,
-                        'user_id' => Auth::id() ?? 1,
-                        'penerima' => $request->penerima,
-                        'tgl_keluar' => $request->tgl_keluar,
-                        'jumlah' => $jumlah,
-                    ]);
-                    $currentBkId = $barangKeluar->id;
-                    $isFirst = false;
-                } else {
-                    $newBk = BarangKeluar::create([
-                        'kode_transaksi' => $kodeTransaksi,
-                        'barang_id' => $barangId,
-                        'user_id' => Auth::id() ?? 1,
-                        'penerima' => $request->penerima,
-                        'tgl_keluar' => $request->tgl_keluar,
-                        'jumlah' => $jumlah,
-                    ]);
-                    $currentBkId = $newBk->id;
-                }
-
-                foreach ($group as $u) {
-                    $u->barang_keluar_id = $currentBkId;
-                    $u->save();
-                }
-            }
+            // Pasangkan ulang unit menggunakan Mass Update
+            UnitBarang::whereIn('serial_number', $serialNumbers)->update([
+                'barang_keluar_id' => $barangKeluar->id
+            ]);
 
             DB::commit();
 
@@ -234,7 +198,7 @@ class BarangKeluarController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'gagal memperbarui transaksi: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal memperbarui transaksi: ' . $e->getMessage());
         }
     }
 
@@ -246,25 +210,30 @@ class BarangKeluarController extends Controller
 
         try {
             $units = UnitBarang::where('barang_keluar_id', $id)->get();
-            $barang = $barangKeluar->barang;
-
-            $jumlahToRestore = $units->count() > 0 ? $units->count() : $barangKeluar->jumlah;
-
-            if ($barang) {
-                $barang->stok += $jumlahToRestore;
-                $barang->save();
-            }
 
             if ($units->count() > 0) {
+                // Kembalikan stok berdasarkan jenis barang masing-masing unit yang dihapus
+                $groupedUnits = $units->groupBy('barang_id');
+                foreach ($groupedUnits as $bId => $group) {
+                    $b = Barang::find($bId);
+                    if ($b) {
+                        $b->stok += $group->count();
+                        $b->save();
+                    }
+                }
+
+                // Lepaskan relasi unit
                 foreach ($units as $u) {
                     $u->barang_keluar_id = null;
                     $u->save();
                 }
             } else {
-                UnitBarang::where('barang_id', $barang->id)
-                    ->whereNotNull('barang_keluar_id')
-                    ->limit($jumlahToRestore)
-                    ->update(['barang_keluar_id' => null]);
+                // Fallback (jika data unit kosong)
+                $barang = $barangKeluar->barang;
+                if ($barang) {
+                    $barang->stok += $barangKeluar->jumlah;
+                    $barang->save();
+                }
             }
 
             $barangKeluar->delete();
@@ -276,7 +245,7 @@ class BarangKeluarController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'gagal menghapus transaksi: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal menghapus transaksi: ' . $e->getMessage());
         }
     }
 }

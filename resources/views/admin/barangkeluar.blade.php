@@ -76,7 +76,7 @@
                         </thead>
                         <tbody class="divide-y divide-slate-50" id="ajax-list-tbody">
                             @forelse($barangKeluar as $item)
-                            <tr class="hover-row group" data-id="{{ $item->id }}" data-nama="{{ $item->barang->nama ?? '' }}" data-kode="{{ $item->kode_transaksi }}">
+                            <tr class="hover-row group" data-id="{{ $item->id }}" data-nama="{{ $item->unitBarang->map(fn($u) => $u->barang->nama ?? '')->unique()->implode(', ') }}" data-kode="{{ $item->kode_transaksi }}">
                                 <td class="px-8 py-6 font-bold text-slate-800 uppercase tracking-tight">{{ $item->kode_transaksi }}</td>
                                 <td class="px-6 py-6 text-sm text-slate-500 font-medium">{{ $item->jumlah }} UNIT</td>
                                 <td class="px-6 py-6 text-center">
@@ -84,32 +84,36 @@
                                 </td>
                                 <td class="px-8 py-6 text-center">
                                     <div class="flex items-center justify-center gap-2">
+                                        
                                         <button type="button"
                                             onclick="bukaDetail({
-                                                id: {{ $item->id }}, 
-                                                barang: '{{ addslashes($item->barang->nama ?? '') }}', 
-                                                jumlah: {{ $item->jumlah }}, 
-                                                tgl: '{{ $item->tgl_keluar }}', 
-                                                kategori: '{{ addslashes($item->barang->kategori->nama ?? '') }}', 
+                                                id: {{ $item->id }},
+                                                barang: '{{ addslashes($item->unitBarang->map(fn($u) => $u->barang->nama ?? '')->unique()->implode(', ')) }}',
+                                                jumlah: {{ $item->jumlah }},
+                                                tgl: '{{ $item->tgl_keluar }}',
+                                                kategori: '{{ addslashes($item->unitBarang->map(fn($u) => $u->barang->kategori->nama ?? '')->filter()->unique()->implode(', ')) }}',
                                                 penerima: '{{ addslashes($item->penerima) }}',
-                                                units: {{ json_encode($item->unitBarang->map(fn($u) => ['sn' => $u->serial_number, 'nama' => $item->barang->nama ?? '-'])) }}
-                                            })" 
+                                                units: {{ json_encode($item->unitBarang->map(fn($u) => ['sn' => $u->serial_number, 'nama' => $u->barang->nama ?? '-'])) }}
+                                            })"
                                             class="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all" title="Detail">
                                             <i class="fas fa-eye"></i>
                                         </button>
+
                                         <button type="button"
                                             onclick="bukaEdit({
                                                 id: {{ $item->id }},
                                                 tgl: '{{ $item->tgl_keluar }}',
                                                 penerima: '{{ addslashes($item->penerima) }}',
-                                                units: {{ json_encode($item->unitBarang->map(fn($u) => ['id' => $u->id, 'sn' => $u->serial_number, 'nama' => $item->barang->nama ?? '-'])) }}
+                                                units: {{ json_encode($item->unitBarang->map(fn($u) => ['id' => $u->id, 'sn' => $u->serial_number, 'nama' => $u->barang->nama ?? '-'])) }}
                                             })"
                                             class="p-2 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button onclick="bukaDelete({{ $item->id }}, '{{ $item->barang->nama ?? '' }}')" class="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all" title="Hapus">
+
+                                        <button onclick="bukaDelete({{ $item->id }}, '{{ addslashes($item->unitBarang->map(fn($u) => $u->barang->nama ?? '')->unique()->implode(', ')) }}')" class="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all" title="Hapus">
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        
                                     </div>
                                 </td>
                             </tr>
