@@ -4,7 +4,6 @@ namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Barang;
 use App\Models\Kategori;
@@ -12,32 +11,15 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Worksheet\Table;
-use PhpOffice\PhpSpreadsheet\Worksheet\Table\TableStyle;
-    
+
 class BarangAdminController extends Controller
 {
     // Tampilkan daftar barang
-    public function index(Request $request)
+    public function index()
     {
-        $search = $request->input('search');
-        $kategori = $request->input('kategori'); 
-
-        $query = Barang::with(['kategori', 'unitBarang' => function($q) {
-            $q->whereNull('barang_keluar_id');
-        }])
-            ->when($search, function ($q) use ($search) {
-                $q->where(function($subQuery) use ($search) {
-                    $subQuery->where('nama', 'like', "%{$search}%")
-                             ->orWhere('deskripsi', 'like', "%{$search}%");
-                });
-            })
-            ->when($kategori, function ($q) use ($kategori) {
-                $q->where('kategori_id', $kategori);
-            });
-
-        $allBarang = $query->get()
-            ->groupBy(function ($item) {
+        $barang = Barang::with(['kategori', 'unitBarang'])
+            ->get()
+            ->groupBy(function($item) {
                 return strtolower(trim($item->nama));
             })
             ->map(function ($group) {
@@ -136,11 +118,9 @@ class BarangAdminController extends Controller
                 $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $rowNum, $unit->serial_number ?? '-');
 
                 $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $rowNum, $item->nama ?? '-');
-                // Simpan harga sebagai angka agar filter Excel bisa urut termurah–termahal
-                $sheet->setCellValue(
-                    \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $rowNum,
-                    (float) ($item->harga ?? 0)
-                );
+                // // Format Harga menjadi Rupiah
+                $formattedHarga = 'Rp ' . number_format($item->harga ?? 0, 0, ',', '.');
+                $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $rowNum, $item->harga ?? 0);
                 if ($includeCategory) {
                     $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $rowNum, optional($item->kategori)->nama ?? '-');
                 }
@@ -202,36 +182,16 @@ class BarangAdminController extends Controller
         }
         
         // Tabel Border
-        $summaryLastRow = $summaryRow - 1;
         if ($summaryRow > 2) {
-            $summaryTableRange = $summaryStartColLetter . '1:' . $summaryEndCol . $summaryLastRow;
+            $summaryTableRange = $summaryStartColLetter . '1:' . $summaryEndCol . ($summaryRow - 1);
             $sheet->getStyle($summaryTableRange)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
             $summaryNoCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($summaryStartCol);
-            $sheet->getStyle($summaryNoCol . '2:' . $summaryNoCol . $summaryLastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle($summaryNoCol . '2:' . $summaryNoCol . ($summaryRow - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         }
-
-        // Filter: kolom A-E (data utama) dan G-I (ringkasan); kolom F tanpa filter
-        $mainLastColLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(count($headers));
-        $tableStyle = new TableStyle();
-        $tableStyle->setTheme(TableStyle::TABLE_STYLE_NONE);
-
-        if ($highestRow >= 2) {
-            $mainTable = new Table('A1:' . $mainLastColLetter . $highestRow, 'DataBarang');
-            $mainTable->setStyle(clone $tableStyle);
-            $mainTable->setAllowFilter(true);
-            $sheet->addTable($mainTable);
-        }
-
-        if ($summaryRow > 2) {
-            $summaryTable = new Table(
-                $summaryStartColLetter . '1:' . $summaryEndCol . $summaryLastRow,
-                'RingkasanBarang'
-            );
-            $summaryTable->setStyle(clone $tableStyle);
-            $summaryTable->setAllowFilter(true);
-            $sheet->addTable($summaryTable);
-        }
+        
+        $sheet->setAutoFilter('A1:' . $highestColumn . '1');
+        $sheet->setAutoFilter($summaryStartColLetter . '1:' . $summaryEndCol . '1');
 
         // Resize Kolom
         foreach (range('A', $sheet->getHighestColumn()) as $col) {
