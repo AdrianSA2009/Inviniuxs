@@ -10,7 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    @include('layout.partials.aos-head')
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -59,7 +60,7 @@
         <!-- Main Content -->
         <main class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-slate-50">
             <!-- Komponen Atas Tabel -->
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4" data-aos="fade-down">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <nav class="flex text-sm text-slate-500 mb-2">
                         <span>Master Data</span>
@@ -74,13 +75,12 @@
                 </button>
             </div>
         
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-wrap gap-4 items-center justify-between" data-aos="fade-up" data-aos-delay="100">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-wrap gap-4 items-center justify-between">
                 <div class="relative w-full md:w-96 group">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors">
                         <i class="fas fa-search text-sm"></i>
                     </span>
                     <input type="text" id="searchBarang"
-                        value="{{ request('search') }}"
                         class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" 
                         placeholder="Cari nama barang...">
                 </div>
@@ -88,9 +88,9 @@
                 <div class="flex items-center gap-3 w-full md:w-auto">
                     <div class="relative flex-1 md:w-52">
                         <select id="filterKategori" class="w-full appearance-none px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-600 text-sm font-medium cursor-pointer transition-all pr-10">
-                            <option value="" {{ !request('kategori') ? 'selected' : '' }}>Semua Jenis</option>
+                            <option value="">Semua Jenis</option>
                             @foreach($categories as $kategori)
-                                <option value="{{ $kategori->id }}" {{ request('kategori') == $kategori->id ? 'selected' : '' }}>{{ $kategori->nama }}</option>
+                                <option value="{{ strtolower($kategori->nama) }}">{{ $kategori->nama }}</option>
                             @endforeach
                         </select>
                         <div class="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-slate-400">
@@ -101,7 +101,7 @@
             </div>
             <!-- End Komponen Atas Tabel -->
         
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden" data-aos="fade-up" data-aos-delay="200">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
@@ -113,7 +113,7 @@
                                 <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="ajax-list-tbody" class="divide-y divide-slate-100">
+                        <tbody class="divide-y divide-slate-100">
                             @forelse($barang as $item)
                                 <tr class="group hover:bg-slate-50/50 transition-all">
                                     <td class="px-6 py-4 font-bold text-slate-800">{{ $item->nama }}</td>
@@ -160,27 +160,14 @@
                     </table>
                 </div>
             
-                <div id="ajax-list-footer" class="p-6 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <p class="text-sm text-slate-500">Menampilkan {{ $barang->count() }} dari {{ $barang->total() }} Barang</p>
-                    @if ($barang->hasPages())
-                        <div class="flex items-center gap-2">
-                            <a href="{{ $barang->previousPageUrl() ?: '#' }}" class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm {{ $barang->onFirstPage() ? 'opacity-50 cursor-not-allowed pointer-events-none' : '' }}">
-                                Previous
-                            </a>
-
-                            @foreach ($barang->getUrlRange(1, $barang->lastPage()) as $page => $url)
-                                @if ($page == $barang->currentPage())
-                                    <span class="w-8 h-8 bg-blue-600 text-white rounded-lg text-sm font-bold flex items-center justify-center">{{ $page }}</span>
-                                @else
-                                    <a href="{{ $url }}" class="w-8 h-8 hover:bg-slate-100 text-slate-600 rounded-lg text-sm transition-all flex items-center justify-center">{{ $page }}</a>
-                                @endif
-                            @endforeach
-
-                            <a href="{{ $barang->nextPageUrl() ?: '#' }}" class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm {{ $barang->hasMorePages() ? '' : 'opacity-50 cursor-not-allowed pointer-events-none' }}">
-                                Next
-                            </a>
-                        </div>
-                    @endif
+                <div class="p-6 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <p class="text-sm text-slate-500">Menampilkan {{ $barang->count() }} barang</p>
+                    <div class="flex items-center gap-2">
+                        <button class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm">Previous</button>
+                        <button class="w-8 h-8 bg-blue-600 text-white rounded-lg text-sm font-bold">1</button>
+                        <button class="w-8 h-8 hover:bg-slate-100 text-slate-600 rounded-lg text-sm transition-all">2</button>
+                        <button class="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all text-sm">Next</button>
+                    </div>
                 </div>
             </div>
 
@@ -440,9 +427,15 @@
         <!-- End Main Content -->
     </div>
 
-    @include('layout.partials.aos-scripts')
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        AOS.init({
+            duration: 800,
+            once: true,
+            easing: 'ease-in-out'
+        });
+
         // Pencarian kategori pada modal
         document.getElementById('searchCategory').addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
@@ -671,24 +664,64 @@
             }
         });
 
-        document.addEventListener("DOMContentLoaded", function() {
-            const closeExport = document.getElementById('closeExportConfirmOverlay');
-            if (closeExport) {
-                closeExport.addEventListener('click', function() {
-                    hideModal('modalExportConfirm');
-                });
+        // Unified Filter: Search by Nama & Filter by Kategori
+        const searchInput = document.getElementById('searchBarang');
+        const categorySelect = document.getElementById('filterKategori');
+        
+        function filterTable() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const selectedCategory = categorySelect.value.toLowerCase().trim();
+            
+            const tableBody = document.querySelector('tbody');
+            const tableRows = tableBody.querySelectorAll('tr:not(.no-data-row)');
+            let visibleCount = 0;
+        
+            tableRows.forEach(row => {
+                // Ambil kolom pertama (Nama Barang) dan kedua (Kategori)
+                const namaCell = row.querySelector('td:first-child');
+                const kategoriCell = row.querySelector('td:nth-child(2)');
+                
+                if (!namaCell || !kategoriCell) return;
+        
+                const namaBarang = namaCell.textContent.toLowerCase();
+                const kategoriBarang = kategoriCell.textContent.toLowerCase().trim();
+                
+                // Cek kecocokan
+                const matchSearch = namaBarang.includes(searchTerm);
+                const matchCategory = selectedCategory === "" || kategoriBarang === selectedCategory;
+        
+                // Tampilkan baris jika sesuai dengan kedua filter
+                if (matchSearch && matchCategory) {
+                    row.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    row.classList.add('hidden');
+                }
+            });
+        
+            // Tampilkan/Sembunyikan pesan "Barang tidak ditemukan"
+            let noDataRow = tableBody.querySelector('.no-data-row');
+            if (visibleCount === 0) {
+                if (!noDataRow) {
+                    noDataRow = document.createElement('tr');
+                    noDataRow.className = 'no-data-row';
+                    noDataRow.innerHTML = '<td colspan="5" class="px-6 py-8 text-center text-slate-500">Barang tidak ditemukan.</td>';
+                    tableBody.appendChild(noDataRow);
+                }
+                noDataRow.classList.remove('hidden');
+            } else if (noDataRow) {
+                noDataRow.classList.add('hidden');
             }
-        });
+        }
+        
+        // Tambahkan event listener untuk input teks dan dropdown select
+        searchInput.addEventListener('input', filterTable);
+        categorySelect.addEventListener('change', filterTable);
 
+        // Close overlay pada modal export confirm
         document.getElementById('closeExportConfirmOverlay').addEventListener('click', function() {
             hideModal('modalExportConfirm');
         });
     </script>
-    @include('layout.partials.ajax-list-search-init', [
-        'indexUrl' => route('brgadmin'),
-        'searchInputId' => 'searchBarang',
-        'filterSelectId' => 'filterKategori',
-        'filterParam' => 'kategori',
-    ])
 </body>
 </html>

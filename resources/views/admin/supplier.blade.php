@@ -177,7 +177,7 @@
                         </div>
                         <div>
                             <label class="block mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">No. HP</label>
-                            <input type="text" name="no_telp" value="{{ old('no_telp') }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all placeholder:text-slate-400" placeholder="Masukkan No.HP" required>
+                            <input type="text" name="no_telp" value="{{ old('no_telp') }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all placeholder:text-slate-400" placeholder="Contoh : 08123456789" required>
                             @error('no_telp')<span class="text-red-500 text-xs mt-1 font-semibold block">{{ $message }}</span>@enderror
                         </div>
                     </div>
@@ -225,19 +225,19 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div>
                             <label class="block mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nama Supplier</label>
-                            <input id="editNama" type="text" name="nama" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all text-slate-700" required>
+                            <input id="editNama" type="text" name="nama" value="{{ old('nama') }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all text-slate-700" required>
                             @error('nama')<span class="text-red-500 text-xs mt-1 font-semibold block">{{ $message }}</span>@enderror
                         </div>
                         <div>
                             <label class="block mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">No. HP</label>
-                            <input id="editPhone" type="text" name="no_telp" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all text-slate-700" required>
+                            <input id="editPhone" type="text" name="no_telp" value="{{ old('no_telp') }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all text-slate-700" required>
                             @error('no_telp')<span class="text-red-500 text-xs mt-1 font-semibold block">{{ $message }}</span>@enderror
                         </div>
                     </div>
 
                     <div class="mb-8">
                         <label class="block mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Alamat</label>
-                        <textarea id="editAddress" name="alamat" rows="3" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all resize-none text-slate-600 leading-relaxed" required></textarea>
+                        <textarea id="editAddress" name="alamat" rows="3" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all resize-none text-slate-600 leading-relaxed" required>{{ old('alamat') }}</textarea>
                         @error('alamat')<span class="text-red-500 text-xs mt-1 font-semibold block">{{ $message }}</span>@enderror
                     </div>
 
