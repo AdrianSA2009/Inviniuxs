@@ -61,7 +61,7 @@ class BarangAdminController extends Controller
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
         $currentItems = $allBarang->slice(($currentPage - 1) * $perPage, $perPage)->values();
 
-        $barang = new LengthAwarePaginator(
+        $barang = new LengthAwarePaginators(
             $currentItems,
             $allBarang->count(),
             $perPage,

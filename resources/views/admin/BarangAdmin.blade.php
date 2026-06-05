@@ -32,7 +32,7 @@
 </head>
 <body class="bg-slate-50 text-gray-800 h-screen flex overflow-hidden">
 
-    <!-- Sidebar -->
+    <!-- Sidebar -->s
     @include('layout.sidebar')
     <!-- End Sidebar -->
 
