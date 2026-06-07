@@ -59,7 +59,7 @@
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors">
                         <i class="fas fa-search text-sm"></i>
                     </span>
-                    <input id="searchInput" type="text" value="{{ request('search') }}" class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" placeholder="Cari nama transaksi / supplier...">
+                    <input id="searchInput" type="text" value="{{ request('search') }}" class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" placeholder="Cari nama transaksi / penerima / PIC...">
                 </div>
             </div>
 
@@ -71,6 +71,7 @@
                                 <th class="px-6 py-5 text-[11px] uppercase tracking-widest font-bold text-slate-400">Kode Transaksi</th>
                                 <th class="px-6 py-5 text-[11px] uppercase tracking-widest font-bold text-slate-400">Jumlah</th>
                                 <th class="px-6 py-5 text-[11px] uppercase tracking-widest font-bold text-slate-400 text-center">Penerima</th>
+                                <th class="px-6 py-5 text-[11px] uppercase tracking-widest font-bold text-slate-400 text-center">PIC</th>
                                 <th class="px-8 py-5 text-[11px] uppercase tracking-widest font-bold text-slate-400 text-center">Aksi</th>
                             </tr>
                         </thead>
@@ -81,6 +82,9 @@
                                 <td class="px-6 py-6 text-sm text-slate-500 font-medium">{{ $item->jumlah }} UNIT</td>
                                 <td class="px-6 py-6 text-center">
                                     <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">{{ $item->penerima }}</span>
+                                </td>
+                                <td class="px-6 py-6 text-center">
+                                    <span class="px-3 py-1 rounded-full bg-green-50 text-green-600 text-xs font-semibold">{{ $item->karyawan->nama ?? '-' }}</span>
                                 </td>
                                 <td class="px-8 py-6 text-center">
                                     <div class="flex items-center justify-center gap-2">
@@ -93,6 +97,7 @@
                                                 tgl: '{{ $item->tgl_keluar }}',
                                                 kategori: '{{ addslashes($item->unitBarang->map(fn($u) => $u->barang->kategori->nama ?? '')->filter()->unique()->implode(', ')) }}',
                                                 penerima: '{{ addslashes($item->penerima) }}',
+                                                pic: '{{ $item->karyawan->nama ?? '-' }}',
                                                 units: {{ json_encode($item->unitBarang->map(fn($u) => ['sn' => $u->serial_number, 'nama' => $u->barang->nama ?? '-'])) }}
                                             })"
                                             class="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all" title="Detail">
@@ -281,62 +286,65 @@
     <!-- Modal Detail -->
     <div id="modalDetail" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full transition-all duration-300">
         <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
-        <div class="relative p-4 w-full max-w-2xl max-h-full">
+        <div class="relative p-4 w-full max-w-lg max-h-full">
             <div class="relative bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-100">
-                <div class="flex items-center justify-between p-6 border-b border-slate-100">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-sky-500 rounded-lg flex items-center justify-center text-white shadow-lg shadow-sky-100">
-                            <i class="fas fa-file-alt text-lg"></i>
+                <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-100">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center text-white shadow shadow-sky-100">
+                            <i class="fas fa-file-alt text-sm"></i>
                         </div>
                         <div>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Detail Transaksi</p>
-                            <h2 class="text-xl font-black text-slate-800 tracking-tight">Barang Keluar</h2>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Detail Transaksi</p>
+                            <h2 class="text-base font-black text-slate-800 tracking-tight leading-tight">Barang Keluar</h2>
                         </div>
                     </div>
-                    <button type="button" onclick="hideModal('modalDetail')" class="text-slate-400 hover:text-slate-600 transition-colors w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100">
-                        <i class="fas fa-times text-lg"></i>
+                    <button type="button" onclick="hideModal('modalDetail')" class="text-slate-400 hover:text-slate-600 transition-colors w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100">
+                        <i class="fas fa-times"></i>
                     </button>
                 </div>
-
-                <div class="px-8 py-5">
-                    <div class="mb-5">
-                        <label class="block mb-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tanggal Keluar</label>
-                        <input type="text" id="detail-tgl" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm font-semibold text-slate-700" readonly>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-                        <div>
-                            <label class="block mb-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Penerima</label>
-                            <input type="text" id="detail-penerima" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm font-semibold text-slate-700" readonly>
+ 
+                <div class="px-5 py-4">
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div class="col-span-2">
+                            <label class="block mb-1 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Tanggal Keluar</label>
+                            <input type="text" id="detail-tgl" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none text-xs font-semibold text-slate-700" readonly>
                         </div>
                         <div>
-                            <label class="block mb-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jumlah Unit</label>
-                            <input type="text" id="detail-jumlah" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm font-semibold text-slate-700" readonly>
+                            <label class="block mb-1 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Penerima</label>
+                            <input type="text" id="detail-penerima" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none text-xs font-semibold text-slate-700" readonly>
+                        </div>
+                        <div>
+                            <label class="block mb-1 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Jumlah Unit</label>
+                            <input type="text" id="detail-jumlah" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none text-xs font-semibold text-slate-700" readonly>
+                        </div>
+                        <div class="col-span-2">
+                            <label class="block mb-1 text-[9px] font-bold text-slate-400 uppercase tracking-widest">PIC</label>
+                            <input type="text" id="detail-pic" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none text-xs font-semibold text-slate-700" readonly>
                         </div>
                     </div>
-
-                    <div class="space-y-3">
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1">Daftar Unit</label>
-                        <div class="border border-slate-100 rounded-2xl overflow-hidden shadow-sm bg-white">
+ 
+                    <div class="space-y-2">
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] px-1">Daftar Unit</label>
+                        <div class="border border-slate-100 rounded-xl overflow-hidden shadow-sm bg-white">
                             <table class="w-full text-left">
                                 <thead class="bg-slate-50/80 border-b border-slate-100">
                                     <tr>
-                                        <th class="px-5 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-widest text-left w-14">No</th>
-                                        <th class="px-5 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-widest text-left">Serial Number</th>
-                                        <th class="px-5 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-widest text-left">Nama Barang</th>
+                                        <th class="px-4 py-2.5 text-[8px] font-black text-slate-400 uppercase tracking-widest text-left w-10">No</th>
+                                        <th class="px-4 py-2.5 text-[8px] font-black text-slate-400 uppercase tracking-widest text-left">Serial Number</th>
+                                        <th class="px-4 py-2.5 text-[8px] font-black text-slate-400 uppercase tracking-widest text-left">Nama Barang</th>
                                     </tr>
                                 </thead>
                             </table>
-                            <div class="overflow-y-auto" style="max-height: 120px;">
+                            <div class="overflow-y-auto" style="max-height: 100px;">
                                 <table class="w-full text-left">
                                     <tbody id="detail-unit-body" class="divide-y divide-slate-50"></tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
-
-                    <div class="pt-5 flex justify-end">
-                        <button type="button" onclick="hideModal('modalDetail')" class="px-10 py-2.5 bg-white border-2 border-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-50 hover:border-slate-200 transition-all text-xs uppercase tracking-widest shadow-sm">
+ 
+                    <div class="pt-4 flex justify-end">
+                        <button type="button" onclick="hideModal('modalDetail')" class="px-6 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-all text-xs uppercase tracking-widest shadow-sm">
                             Tutup
                         </button>
                     </div>
@@ -344,6 +352,7 @@
             </div>
         </div>
     </div>
+    <!-- End Modal Detail -->
 
     <!-- Modal Edit -->
     <div id="modalEdit" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 justify-center items-center w-full h-full transition-all duration-300">
@@ -498,6 +507,7 @@
             document.getElementById('detail-jumlah').value = data.jumlah + ' Unit' || '-';
             document.getElementById('detail-tgl').value = new Date(data.tgl).toLocaleDateString('id-ID') || '-';
             document.getElementById('detail-penerima').value = data.penerima || '-';
+            document.getElementById('detail-pic').value = data.pic || '-';
             
             const tbody = document.getElementById('detail-unit-body');
             tbody.innerHTML = '';

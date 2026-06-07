@@ -16,7 +16,7 @@ class SupplierSeeder extends Seeder
             DB::table('suppliers')->insert([
                 'nama' => $faker->company,
                 'alamat' => $faker->address,
-                'no_telp' => $faker->phoneNumber,
+                'no_telp' => '08' . implode('', array_map(function() { return rand(0, 9); }, range(1, rand(8, 10)))),
             ]);
         }
     }

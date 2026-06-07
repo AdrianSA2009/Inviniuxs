@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Barang;
 use App\Models\BarangMasuk;
 use App\Models\UnitBarang;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -21,15 +22,18 @@ class BarangMasukController extends Controller
             return $query->where('kode_transaksi', 'like', "%{$search}%")
                 ->orWhereHas('supplier', function($q) use ($search) {
                     $q->where('nama', 'like', "%{$search}%");
+                })
+                ->orWhereHas('karyawan', function($q) use ($search) {
+                    $q->where('nama', 'like', "%{$search}%");
                 });
         })
-        ->with(['barang.kategori', 'supplier', 'unitBarang'])
+        ->with(['barang.kategori', 'supplier', 'karyawan', 'unitBarang'])
         ->orderBy('tgl_masuk', 'desc')
         ->paginate(10)
         ->withQueryString();
         
-        $kategori = DB::table('kategori')->get();
         $suppliers = DB::table('suppliers')->get();
+        $kategori = DB::table('kategori')->get();
     
         return view('admin.barangmasuk', compact('barangMasuk', 'kategori', 'suppliers'));
     }

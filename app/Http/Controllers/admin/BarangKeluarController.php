@@ -21,9 +21,12 @@ class BarangKeluarController extends Controller
             return $query->where(function($q) use ($search) {
                 $q->where('kode_transaksi', 'like', "%{$search}%")
                   ->orWhere('penerima', 'like', "%{$search}%");
+            })
+            ->orWhereHas('karyawan', function($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%");
             });
         })
-        ->with(['barang.kategori', 'karyawan', 'unitBarang.barang']) 
+        ->with(['barang.kategori', 'karyawan', 'user', 'unitBarang.barang']) 
         ->orderBy('tgl_keluar', 'desc')
         ->paginate(10)
         ->withQueryString();

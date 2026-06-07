@@ -16,6 +16,11 @@ class BarangMasuk extends Model
         return $this->belongsTo(Barang::class);
     }
 
+    public function karyawan()
+    {
+        return $this->belongsTo(User::class, 'karyawan_id');
+    }
+
     public function supplier()
     {
         return $this->belongsTo(Supplier::class, 'supplier_id');
