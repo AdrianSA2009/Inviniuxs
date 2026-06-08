@@ -16,6 +16,7 @@ class kategoriController extends Controller
                 $q->where('nama', 'like', "%{$search}%");
             });
         })
+        ->orderBy('id', 'desc')
         ->paginate(10)
         ->withQueryString();
 
