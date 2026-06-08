@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Barang;
+use App\Models\UnitBarang;
 use App\Models\BarangMasuk;
 use App\Models\BarangKeluar;
 use App\Models\Supplier;
@@ -15,7 +16,7 @@ class DashboardAdminController extends Controller
 {
     public function index()
     {
-        $totalBarang = Barang::count(); 
+        $totalBarang = UnitBarang::whereNull('barang_keluar_id')->count();
         $totalBarangMasuk = BarangMasuk::sum('jumlah') ?? 0;
         $totalBarangKeluar = BarangKeluar::sum('jumlah') ?? 0; 
         $totalSupplier = Supplier::count();

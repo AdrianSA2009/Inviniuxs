@@ -15,7 +15,7 @@ class DashboardManajerController extends Controller
 {
     public function index()
     {
-        $totalBarang = Barang::count(); 
+        $totalBarang = UnitBarang::whereNull('barang_keluar_id')->count(); 
         $totalBarangMasuk = BarangMasuk::sum('jumlah') ?? 0;
         $totalBarangKeluar = BarangKeluar::sum('jumlah') ?? 0; 
         $totalSupplier = Supplier::count();

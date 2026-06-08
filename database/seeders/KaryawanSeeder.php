@@ -21,6 +21,13 @@ class KaryawanSeeder extends Seeder
             'role' => 'admin_gudang',
         ]);
 
+        DB::table('karyawan')->insert([
+            'nama' => 'Manajer',
+            'username' => 'manajer',
+            'password' => Hash::make('password'),
+            'role' => 'manajer',
+        ]);
+
         for ($i = 0; $i < 25; $i++) {
             DB::table('karyawan')->insert([
                 'nama' => $faker->name,
