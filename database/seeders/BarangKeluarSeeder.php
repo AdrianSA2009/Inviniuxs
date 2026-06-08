@@ -13,10 +13,13 @@ class BarangKeluarSeeder extends Seeder
         $faker = Faker::create('id_ID');
 
         // 1. Ambil semua data master yang dibutuhkan
-        $karyawanIds = DB::table('karyawan')->pluck('id')->toArray();
+        $karyawanIds = DB::table('karyawan')
+            ->where('role', 'admin_gudang')
+            ->pluck('id')
+            ->toArray();
         
         if (empty($karyawanIds)) {
-            // Jika data karyawan kosong, buat fallback satu admin
+            // Jika tidak ada admin gudang, buat fallback satu admin
             $karyawanIds[] = DB::table('karyawan')->insertGetId([
                 'nama' => 'Admin Gudang Utama',
                 'username' => 'admin_gudang',

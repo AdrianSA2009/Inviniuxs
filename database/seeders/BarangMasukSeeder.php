@@ -14,7 +14,10 @@ class BarangMasukSeeder extends Seeder
         
         $barangIds = DB::table('barang')->pluck('id')->toArray();
         $supplierIds = DB::table('suppliers')->pluck('id')->toArray();
-        $karyawanIds = DB::table('karyawan')->pluck('id')->toArray();
+        $karyawanIds = DB::table('karyawan')
+            ->where('role', 'admin_gudang')
+            ->pluck('id')
+            ->toArray();
 
         $fallbackSupplierId = !empty($supplierIds) ? null : DB::table('suppliers')->insertGetId([
             'nama' => 'Supplier Utama',
@@ -24,6 +27,9 @@ class BarangMasukSeeder extends Seeder
         
         $fallbackKaryawanId = !empty($karyawanIds) ? null : DB::table('karyawan')->insertGetId([
             'nama' => 'Admin Gudang',
+            'username' => 'admin_gudang',
+            'password' => bcrypt('password'),
+            'role' => 'admin_gudang',
             'created_at' => now(),
             'updated_at' => now()
         ]);
