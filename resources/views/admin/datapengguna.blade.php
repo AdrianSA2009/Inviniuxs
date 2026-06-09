@@ -110,7 +110,8 @@
                                 </td>
                                 <td class="px-6 py-4 text-center">
                                     <div class="flex items-center justify-center gap-2">
-                                        <button onclick="openEditModal('{{ $user->id }}', '{{ $user->nama }}', '{{ $user->username }}', '{{ $user->role }}')" data-modal-target="modalEdit" data-modal-toggle="modalEdit" class="p-2 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all">
+                                        {{-- Menambahkan data email ke dalam parameter JavaScript openEditModal --}}
+                                        <button onclick="openEditModal('{{ $user->id }}', '{{ $user->nama }}', '{{ $user->username }}', '{{ $user->email }}', '{{ $user->role }}')" data-modal-target="modalEdit" data-modal-toggle="modalEdit" class="p-2 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button onclick="openDeleteModal('{{ $user->id }}')" data-modal-target="modalDelete" data-modal-toggle="modalDelete" class="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all">
@@ -155,7 +156,6 @@
         </main>
     </div>
 
-    <!-- Modal Tambah -->
     <div id="modalTambahUser" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
         <div id="closeModalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
         <div class="relative p-4 w-full max-w-md max-h-full">
@@ -183,6 +183,17 @@
                             @enderror
                         @endif
                     </div>
+                    {{-- Tambah Field Email --}}
+                    <div>
+                        <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Email</label>
+                        <input type="email" name="email" value="{{ old('id') ? '' : old('email') }}" class="w-full px-4 py-3 bg-slate-50 border @if(!old('id') && $errors->has('email')) border-red-500 @else border-slate-200 @endif rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all placeholder:text-slate-400" placeholder="Contoh: adrian@gmail.com" required>
+
+                        @if(!old('id'))
+                            @error('email')
+                                <p class="text-red-500 text-xs mt-2 font-semibold"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</p>
+                            @enderror
+                        @endif
+                    </div>
                     <div>
                         <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Password</label>
                         <input type="password" name="password" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all placeholder:text-slate-400" placeholder="••••••••" required>
@@ -203,9 +214,7 @@
             </div>
         </div>
     </div>
-    <!-- End Modal Tambah -->
-
-    <!-- Modal Edit -->
+    
     <div id="modalEdit" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
         <div id="closeModalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
         <div class="relative p-4 w-full max-w-md max-h-full">
@@ -219,7 +228,7 @@
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                <form id="formEditUser" action="#" method="POST" class="p-8 space-y-4">
+                <form id="formEditUser" action="#" method="POST" class="px-8 mb-8 space-y-4">
                     @csrf
                     @method('PUT')
                     
@@ -235,6 +244,17 @@
                         
                         @if(old('id'))
                             @error('username')
+                                <p class="text-red-500 text-xs mt-1 font-semibold"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</p>
+                            @enderror
+                        @endif
+                    </div>
+                    {{-- Tambah Field Email pada Edit --}}
+                    <div>
+                        <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Email</label>
+                        <input type="email" name="email" id="edit-email" value="{{ old('id') ? old('email') : '' }}" class="w-full px-4 py-3 bg-slate-50 border @if(old('id') && $errors->has('email')) border-red-500 @else border-slate-200 @endif rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all placeholder:text-slate-400" placeholder="Masukkan email..." required>
+                        
+                        @if(old('id'))
+                            @error('email')
                                 <p class="text-red-500 text-xs mt-1 font-semibold"><i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}</p>
                             @enderror
                         @endif
@@ -285,16 +305,17 @@
             </div>
         </div>
     </div>
-    <!-- Modal Delete -->
+    <!-- End Modal Delete -->
 
     @include('layout.partials.aos-scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <script>
-        function openEditModal(id, nama, username, role) {
+        function openEditModal(id, nama, username, email, role) {
             document.getElementById('edit-id').value = id;
             document.getElementById('edit-nama').value = nama;
             document.getElementById('edit-username').value = username;
+            document.getElementById('edit-email').value = email;
             document.getElementById('edit-role').value = role.toLowerCase();
             document.getElementById('formEditUser').action = `/admin/pengguna/${id}`;
         }

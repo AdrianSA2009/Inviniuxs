@@ -9,12 +9,20 @@ use App\Http\Controllers\admin\BarangAdminController;
 use App\Http\Controllers\manajer\DashboardManajerController;
 use App\Http\Controllers\manajer\BarangManajerController;
 use App\Http\Controllers\admin\PenggunaController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
     Route::get('/', [loginController::class, 'index'])->name('login');
     Route::post('/', [loginController::class, 'authenticate']);
 });
+
+Route::get('/forgot-password', [ForgotPasswordController::class, 'showRequestForm'])->name('password.request');
+Route::post('/forgot-password/send', [ForgotPasswordController::class, 'sendOtp'])->name('password.email');
+Route::post('/forgot-password/verify', [ForgotPasswordController::class, 'verifyOtp'])->name('password.verify');
+
+Route::get('/reset-password', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])->name('password.update');
 
 Route::middleware('auth')->group(function () {
 

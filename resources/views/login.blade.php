@@ -97,6 +97,12 @@
                         </button>
                     </div>
                 </div>
+
+                <div data-aos="fade-up" data-aos-delay="450" class="flex justify-end">
+                    <a href="{{ route('password.request') }}" class="text-xs font-semibold text-blue-400 hover:text-blue-300 transition-colors">
+                        Lupa Password?
+                    </a>
+                </div>
             
                 <div data-aos="fade-up" data-aos-delay="500">
                     <button type="submit" 

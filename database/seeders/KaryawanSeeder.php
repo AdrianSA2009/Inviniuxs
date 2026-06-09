@@ -17,6 +17,7 @@ class KaryawanSeeder extends Seeder
         DB::table('karyawan')->insert([
             'nama' => 'Admin Gudang',
             'username' => 'admin',
+            'email' => 'admin@gmail.com',
             'password' => Hash::make('password'),
             'role' => 'admin_gudang',
         ]);
@@ -24,6 +25,7 @@ class KaryawanSeeder extends Seeder
         DB::table('karyawan')->insert([
             'nama' => 'Manajer',
             'username' => 'manajer',
+            'email' => 'manajer@gmail.com',
             'password' => Hash::make('password'),
             'role' => 'manajer',
         ]);
@@ -32,6 +34,7 @@ class KaryawanSeeder extends Seeder
             DB::table('karyawan')->insert([
                 'nama' => $faker->name,
                 'username' => $faker->unique()->userName,
+                'email' => $faker->unique()->safeEmail,
                 'password' => Hash::make('password'),
                 'role' => $roles[array_rand($roles)],
             ]);
