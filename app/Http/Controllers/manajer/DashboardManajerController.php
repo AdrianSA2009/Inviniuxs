@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Manajer;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Barang;
+use App\Models\UnitBarang;
 use App\Models\BarangMasuk;
 use App\Models\BarangKeluar;
 use App\Models\Supplier;
