@@ -14,6 +14,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Table;
 use PhpOffice\PhpSpreadsheet\Worksheet\Table\TableStyle;
+use Illuminate\Support\Facades\Storage;
 
 class BarangAdminController extends Controller
 {
@@ -48,6 +49,7 @@ class BarangAdminController extends Controller
                     'kategori' => $firstItem->kategori,
                     'harga' => $firstItem->harga,
                     'deskripsi' => $firstItem->deskripsi,
+                    'gambar' => $firstItem->gambar,
                     'stok' => $group->sum('stok'),
                     'unitBarang' => $group->flatMap->unitBarang->unique('id')->values(),
                 ];
@@ -264,6 +266,7 @@ class BarangAdminController extends Controller
                 'harga' => 'required|numeric|min:0',
                 'kategori_id' => 'required|integer',
                 'deskripsi' => 'nullable|string',
+                'gambar' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             ]);
 
             $validator->after(function ($validator) use ($request) {
@@ -281,6 +284,15 @@ class BarangAdminController extends Controller
             }
 
             $validated = $validator->validated();
+
+            if ($request->hasFile('gambar')) {
+                if ($barang->gambar) {
+                    Storage::disk('public')->delete($barang->gambar);
+                }
+
+                $validated['gambar'] = $request->file('gambar')->store('barang', 'public');
+            }
+
             $barang->update($validated);
 
             return response()->json([

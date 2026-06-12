@@ -4,6 +4,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Data Barang - Manajer</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -15,6 +16,10 @@
         .glass-hover:hover {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(5px);
+        }
+        tr.hover-row:hover {
+            background-color: #f8fafc;
+            transition: all 0.2s;
         }
     </style>
 </head>
@@ -87,6 +92,7 @@
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-50/50 border-b border-slate-100">
+                                <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Gambar</th>
                                 <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Nama Barang</th>
                                 <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Jenis Barang</th>
                                 <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Harga</th>
@@ -97,6 +103,17 @@
                         <tbody id="ajax-list-tbody" class="divide-y divide-slate-100">
                             @forelse($barang as $item)
                                 <tr class="group hover:bg-slate-50/50 transition-all">
+                                    <td class="px-6 py-4">
+                                        @if($item->gambar)
+                                            <button type="button" onclick="previewGambar('{{ asset('storage/' . $item->gambar) }}')" class="block rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30" title="Preview gambar">
+                                                <img src="{{ asset('storage/' . $item->gambar) }}" alt="{{ $item->nama }}" class="w-14 h-14 object-cover rounded-xl border border-slate-100">
+                                            </button>
+                                        @else
+                                            <div class="w-14 h-14 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center">
+                                                <i class="fas fa-image"></i>
+                                            </div>
+                                        @endif
+                                    </td>
                                     <td class="px-6 py-4 font-bold text-slate-800">{{ $item->nama }}</td>
                                     <td class="px-6 py-4">
                                         <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">{{ optional($item->kategori)->nama ?? 'Tidak diketahui' }}</span>
@@ -110,6 +127,7 @@
                                                     nama: @json($item->nama),
                                                     harga: @json($item->harga),
                                                     deskripsi: @json($item->deskripsi),
+                                                    gambar_url: @json($item->gambar ? asset('storage/' . $item->gambar) : null),
                                                     units: @json($item->unitBarang->map(fn($u) => ["sn" => $u->serial_number, "nama" => $item->nama ?? "-"]))
                                                 })'
                                                 class="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all" title="Detail">
@@ -123,7 +141,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-6 py-8 text-center text-slate-500">Belum ada data barang.</td>
+                                    <td colspan="6" class="px-6 py-8 text-center text-slate-500">Belum ada data barang.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -155,24 +173,32 @@
             </div>
 
             <!-- Modal Detail -->
-            <div id="modalDetail" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-                <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center w-full">
-                    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="hideModal('modalDetail')"></div>
-                
-                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div id="modalDetail" class="fixed inset-0 z-50 hidden overflow-hidden p-4" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                <div class="flex items-center justify-center h-full text-center w-full">
+                    <div id="closeModalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="hideModal('modalDetail')"></div>
 
-                    <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full border border-slate-200 relative z-10">
+                    <div class="relative bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all w-full max-w-5xl max-h-full border border-slate-200 flex flex-col">
 
                         <div class="bg-white px-6 py-4 border-b border-slate-100 flex justify-between items-center">
                             <h3 class="text-lg font-bold text-slate-800">
                                 <i class="fas fa-file-alt text-blue-600 mr-2"></i> Rincian Inventaris
                             </h3>
-                            <button type="button" onclick="hideModal('modalDetail')" class="text-slate-400 hover:text-slate-600">
+                            <button data-modal-hide="modalDetail" onclick="hideModal('modalDetail')" class="text-slate-400 hover:text-slate-600">
                                 <i class="fas fa-times text-xl"></i>
                             </button>
                         </div>
                     
-                        <div class="px-6 py-6 space-y-6">
+                        <div class="px-6 py-6 space-y-6 overflow-y-auto">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Gambar Barang</label>
+                                <button type="button" id="detailGambarButton" class="hidden w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30" title="Preview gambar">
+                                    <img id="detailGambar" src="" alt="Gambar barang" class="w-full max-h-72 object-contain rounded-xl border border-slate-100 bg-slate-50">
+                                </button>
+                                <div id="detailGambarEmpty" class="w-full h-40 rounded-xl bg-slate-50 border border-slate-100 text-slate-400 flex items-center justify-center">
+                                    <i class="fas fa-image text-2xl"></i>
+                                </div>
+                            </div>
+
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Nama Barang</label>
@@ -213,7 +239,7 @@
                         </div>
                     
                         <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
-                            <button type="button" onclick="hideModal('modalDetail')" class="px-6 py-2 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-bold hover:bg-slate-100 transition-all">
+                            <button data-modal-hide="modalDetail" onclick="hideModal('modalDetail')" class="px-6 py-2 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-bold hover:bg-slate-100 transition-all">
                                 Tutup
                             </button>
                         </div>
@@ -333,6 +359,23 @@
                 </div>
             </div>
         </main>
+
+         <!-- Modal Preview Gambar -->
+        <div id="modalPreviewGambar" class="fixed inset-0 z-[70] hidden items-center justify-center p-4">
+            <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="hideModal('modalPreviewGambar')"></div>
+            <div class="relative w-full max-w-6xl h-full flex flex-col">
+                <div class="flex justify-end pb-3">
+                    <button type="button" onclick="hideModal('modalPreviewGambar')" class="w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all flex items-center justify-center">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="min-h-0 flex-1 flex items-center justify-center">
+                    <img id="previewGambarFull" src="" alt="Preview gambar barang" class="max-w-full max-h-full object-contain rounded-2xl shadow-2xl">
+                </div>
+            </div>
+        </div>
+        <!-- End Modal Preview Gambar -->
+
     </div>
 
     @include('layout.partials.aos-scripts')
@@ -399,10 +442,33 @@
             }).format(value);
         }
 
+        function previewGambar(url) {
+            if (!url) return;
+            document.getElementById('previewGambarFull').src = url;
+            showModal('modalPreviewGambar');
+        }
+
         function bukaDetail(data) {
             document.getElementById('detailNama').textContent = data.nama || '-';
             document.getElementById('detailHarga').textContent = formatRupiah(data.harga);
             document.getElementById('detailDeskripsi').textContent = data.deskripsi || '-';
+            const detailGambar = document.getElementById('detailGambar');
+            const detailGambarButton = document.getElementById('detailGambarButton');
+            const detailGambarEmpty = document.getElementById('detailGambarEmpty');
+
+            if (data.gambar_url) {
+                detailGambar.src = data.gambar_url;
+                detailGambarButton.onclick = function() {
+                    previewGambar(data.gambar_url);
+                };
+                detailGambarButton.classList.remove('hidden');
+                detailGambarEmpty.classList.add('hidden');
+            } else {
+                detailGambar.removeAttribute('src');
+                detailGambarButton.onclick = null;
+                detailGambarButton.classList.add('hidden');
+                detailGambarEmpty.classList.remove('hidden');
+            }
 
             const tbody = document.getElementById('detail-unit-body');
             tbody.innerHTML = '';

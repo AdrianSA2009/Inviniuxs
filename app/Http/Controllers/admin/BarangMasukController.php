@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class BarangMasukController extends Controller
 {
@@ -296,4 +297,5 @@ class BarangMasukController extends Controller
             return redirect()->back()->with('error', 'gagal menghapus transaksi: ' . $e->getMessage());
         }
     }
+
 }

@@ -41,6 +41,7 @@ class BarangManajerController extends Controller
                     'kategori' => $firstItem->kategori,
                     'harga' => $firstItem->harga,
                     'deskripsi' => $firstItem->deskripsi,
+                    'gambar' => $firstItem->gambar,
                     'stok' => $group->sum('stok'),
                     'unitBarang' => $group->flatMap->unitBarang->unique('id')->values(),
                 ];

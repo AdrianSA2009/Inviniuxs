@@ -107,6 +107,7 @@
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-50/50 border-b border-slate-100">
+                                <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Gambar</th>
                                 <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Nama Barang</th>
                                 <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Jenis Barang</th>
                                 <th class="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Harga</th>
@@ -117,6 +118,17 @@
                         <tbody id="ajax-list-tbody" class="divide-y divide-slate-100">
                             @forelse($barang as $item)
                                 <tr class="group hover:bg-slate-50/50 transition-all">
+                                    <td class="px-6 py-4">
+                                        @if($item->gambar)
+                                            <button type="button" onclick="previewGambar('{{ asset('storage/' . $item->gambar) }}')" class="block rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30" title="Preview gambar">
+                                                <img src="{{ asset('storage/' . $item->gambar) }}" alt="{{ $item->nama }}" class="w-14 h-14 object-cover rounded-xl border border-slate-100">
+                                            </button>
+                                        @else
+                                            <div class="w-14 h-14 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center">
+                                                <i class="fas fa-image"></i>
+                                            </div>
+                                        @endif
+                                    </td>
                                     <td class="px-6 py-4 font-bold text-slate-800">{{ $item->nama }}</td>
                                     <td class="px-6 py-4">
                                         <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">{{ optional($item->kategori)->nama ?? 'Tidak diketahui' }}</span>
@@ -130,6 +142,7 @@
                                                     nama: @json($item->nama),
                                                     harga: @json($item->harga),
                                                     deskripsi: @json($item->deskripsi),
+                                                    gambar_url: @json($item->gambar ? asset('storage/' . $item->gambar) : null),
                                                     units: @json($item->unitBarang->map(fn($u) => ["sn" => $u->serial_number, "nama" => $item->nama ?? "-"]))
                                                 })'
                                                 class="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all" title="Detail">
@@ -141,7 +154,8 @@
                                                     nama: @json($item->nama),
                                                     harga: @json($item->harga),
                                                     kategori_id: @json($item->kategori?->id),
-                                                    deskripsi: @json($item->deskripsi)
+                                                    deskripsi: @json($item->deskripsi),
+                                                    gambar_url: @json($item->gambar ? asset('storage/' . $item->gambar) : null)
                                                 })'
                                                 class="p-2 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all" title="Edit">
                                                 <i class="fas fa-edit"></i>
@@ -154,7 +168,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-6 py-8 text-center text-slate-500">Belum ada data barang.</td>
+                                    <td colspan="6" class="px-6 py-8 text-center text-slate-500">Belum ada data barang.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -186,13 +200,11 @@
             </div>
 
             <!-- Modal Detail -->
-            <div id="modalDetail" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-                <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center w-full">
+            <div id="modalDetail" class="fixed inset-0 z-50 hidden overflow-hidden p-4" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                <div class="flex items-center justify-center h-full text-center w-full">
                     <div id="closeModalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
-                
-                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-                    <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full border border-slate-200">
+                    <div class="relative bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all w-full max-w-5xl max-h-full border border-slate-200 flex flex-col">
 
                         <div class="bg-white px-6 py-4 border-b border-slate-100 flex justify-between items-center">
                             <h3 class="text-lg font-bold text-slate-800">
@@ -203,7 +215,17 @@
                             </button>
                         </div>
                     
-                        <div class="px-6 py-6 space-y-6">
+                        <div class="px-6 py-6 space-y-6 overflow-y-auto">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Gambar Barang</label>
+                                <button type="button" id="detailGambarButton" class="hidden w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30" title="Preview gambar">
+                                    <img id="detailGambar" src="" alt="Gambar barang" class="w-full max-h-72 object-contain rounded-xl border border-slate-100 bg-slate-50">
+                                </button>
+                                <div id="detailGambarEmpty" class="w-full h-40 rounded-xl bg-slate-50 border border-slate-100 text-slate-400 flex items-center justify-center">
+                                    <i class="fas fa-image text-2xl"></i>
+                                </div>
+                            </div>
+
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Nama Barang</label>
@@ -256,15 +278,15 @@
             <!-- End Modal Detail -->
 
             <!-- Modal Edit -->
-            <div id="modalEdit" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+            <div id="modalEdit" class="fixed inset-0 z-50 hidden items-center justify-center p-4 overflow-hidden">
                 <div id="closeEditOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md transition-opacity"></div>
 
-                <div class="glass-card animate-modal relative bg-white w-full max-w-2xl rounded-[2rem] shadow-2xl overflow-hidden border border-white">
+                <div class="glass-card animate-modal relative bg-white w-full max-w-5xl max-h-full rounded-[2rem] shadow-2xl overflow-hidden border border-white flex flex-col">
                     <div class="h-2 bg-gradient-to-r from-amber-400 to-orange-500"></div>
                 
-                    <form id="formEditBarang">
+                    <form id="formEditBarang" class="flex min-h-0 flex-1 flex-col">
                         <input type="hidden" id="editBarangId" name="id">
-                        <div class="p-8">
+                        <div class="p-8 overflow-y-auto">
                             <div class="flex justify-between items-start mb-8">
                                 <div>
                                     <span class="px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-bold uppercase tracking-widest">Update Registry</span>
@@ -305,6 +327,21 @@
                                     <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Deskripsi Spesifikasi</label>
                                     <textarea id="editDeskripsi" name="deskripsi" rows="3"
                                         class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none text-slate-600 text-sm leading-relaxed"></textarea>
+                                </div>
+
+                                <div class="md:col-span-2 space-y-2">
+                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Gambar Barang</label>
+                                    <div class="flex flex-col md:flex-row gap-4 md:items-center">
+                                        <button type="button" id="editGambarPreviewButton" class="hidden rounded-2xl focus:outline-none focus:ring-2 focus:ring-amber-500/30" title="Preview gambar">
+                                            <img id="editGambarPreview" src="" alt="Preview gambar barang" class="w-28 h-28 object-cover rounded-2xl border border-slate-100 bg-slate-50">
+                                        </button>
+                                        <div id="editGambarEmpty" class="w-28 h-28 rounded-2xl bg-slate-50 border border-slate-100 text-slate-400 flex items-center justify-center">
+                                            <i class="fas fa-image text-xl"></i>
+                                        </div>
+                                        <input type="file" id="editGambar" name="gambar" accept="image/jpeg,image/png,image/webp"
+                                            class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none text-sm text-slate-600">
+                                    </div>
+                                    <p class="text-xs text-slate-400 ml-1">Format JPG, PNG, atau WEBP. Maksimal 2MB.</p>
                                 </div>
                             </div>
                         </div>
@@ -439,6 +476,22 @@
             <!-- End Modal Export Konfirmasi Barang -->
         </main>
         <!-- End Main Content -->
+        
+        <!-- Modal Preview Gambar -->
+        <div id="modalPreviewGambar" class="fixed inset-0 z-[70] hidden items-center justify-center p-4">
+            <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="hideModal('modalPreviewGambar')"></div>
+            <div class="relative w-full max-w-6xl h-full flex flex-col">
+                <div class="flex justify-end pb-3">
+                    <button type="button" onclick="hideModal('modalPreviewGambar')" class="w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all flex items-center justify-center">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="min-h-0 flex-1 flex items-center justify-center">
+                    <img id="previewGambarFull" src="" alt="Preview gambar barang" class="max-w-full max-h-full object-contain rounded-2xl shadow-2xl">
+                </div>
+            </div>
+        </div>
+        <!-- End Modal Preview Gambar -->
     </div>
 
     @include('layout.partials.aos-scripts')
@@ -510,10 +563,33 @@
             }).format(value);
         }
 
+        function previewGambar(url) {
+            if (!url) return;
+            document.getElementById('previewGambarFull').src = url;
+            showModal('modalPreviewGambar');
+        }
+
         function bukaDetail(data) {
             document.getElementById('detailNama').textContent = data.nama || '-';
             document.getElementById('detailHarga').textContent = formatRupiah(data.harga);
             document.getElementById('detailDeskripsi').textContent = data.deskripsi || '-';
+            const detailGambar = document.getElementById('detailGambar');
+            const detailGambarButton = document.getElementById('detailGambarButton');
+            const detailGambarEmpty = document.getElementById('detailGambarEmpty');
+
+            if (data.gambar_url) {
+                detailGambar.src = data.gambar_url;
+                detailGambarButton.onclick = function() {
+                    previewGambar(data.gambar_url);
+                };
+                detailGambarButton.classList.remove('hidden');
+                detailGambarEmpty.classList.add('hidden');
+            } else {
+                detailGambar.removeAttribute('src');
+                detailGambarButton.onclick = null;
+                detailGambarButton.classList.add('hidden');
+                detailGambarEmpty.classList.remove('hidden');
+            }
 
             const tbody = document.getElementById('detail-unit-body');
             tbody.innerHTML = '';
@@ -543,18 +619,47 @@
             document.getElementById('editHarga').value = data.harga || '';
             document.getElementById('editKategori').value = data.kategori_id || '';
             document.getElementById('editDeskripsi').value = data.deskripsi || '';
+            document.getElementById('editGambar').value = '';
+            setEditGambarPreview(data.gambar_url || null);
             showModal('modalEdit');
         }
+
+        function setEditGambarPreview(url) {
+            const preview = document.getElementById('editGambarPreview');
+            const previewButton = document.getElementById('editGambarPreviewButton');
+            const empty = document.getElementById('editGambarEmpty');
+
+            if (url) {
+                preview.src = url;
+                previewButton.onclick = function() {
+                    previewGambar(url);
+                };
+                previewButton.classList.remove('hidden');
+                empty.classList.add('hidden');
+                return;
+            }
+
+            preview.removeAttribute('src');
+            previewButton.onclick = null;
+            previewButton.classList.add('hidden');
+            empty.classList.remove('hidden');
+        }
+
+        document.getElementById('editGambar').addEventListener('change', function() {
+            const file = this.files && this.files[0] ? this.files[0] : null;
+
+            if (!file) {
+                return;
+            }
+
+            setEditGambarPreview(URL.createObjectURL(file));
+        });
 
         // Handle Form Submit Edit
         document.getElementById('formEditBarang').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const barangId = document.getElementById('editBarangId').value;
-            const nama = document.getElementById('editNama').value;
-            const harga = document.getElementById('editHarga').value;
-            const kategoriId = document.getElementById('editKategori').value;
-            const deskripsi = document.getElementById('editDeskripsi').value;
 
             if (!barangId) {
                 alert('ID barang tidak ditemukan!');
@@ -567,19 +672,16 @@
             submitBtn.textContent = 'Menyimpan...';
 
             try {
+                const formData = new FormData(this);
+                formData.append('_method', 'PUT');
+
                 const response = await fetch(`/admin/barang/${barangId}`, {
-                    method: 'PUT',
+                    method: 'POST',
                     headers: {
                         'Accept': 'application/json',
-                        'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
                     },
-                    body: JSON.stringify({
-                        nama: nama,
-                        harga: harga,
-                        kategori_id: kategoriId,
-                        deskripsi: deskripsi
-                    })
+                    body: formData
                 });
 
                 let data;

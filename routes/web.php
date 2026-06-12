@@ -32,7 +32,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [DashboardAdminController::class, 'index'])->name('dashboardadmin');
         Route::get('/barang', [BarangAdminController::class, 'index'])->name('brgadmin');
         Route::get('/barang/export', [BarangAdminController::class, 'export'])->name('brgadmin.export');
-        Route::put('/barang/{id}', [BarangAdminController::class, 'update'])->name('brgadmin.update');
+        Route::match(['post', 'put'], '/barang/{id}', [BarangAdminController::class, 'update'])->name('brgadmin.update');
         Route::resource('pengguna', PenggunaController::class)
             ->only(['index', 'store', 'update', 'destroy'])
             ->names('admin.pengguna');
