@@ -24,11 +24,12 @@ class loginController extends Controller
             
             $user = Auth::user();
     
-            // Menggunakan rute name agar lebih aman dan akurat sesuai web.php
-            if ($user->role === 'admin_gudang') {
-                return redirect()->intended(route('dashboardadmin')); 
-            } elseif ($user->role === 'manajer') {
-                return redirect()->intended(route('dashboardmanajer')); 
+            if (Auth::check()) {
+                if (Auth::user()->role === 'admin_gudang') {
+                    return redirect('/admin/');
+                } elseif (Auth::user()->role === 'manajer') {
+                    return redirect('/manajer/');
+                }
             }
     
             return redirect()->intended('/');
