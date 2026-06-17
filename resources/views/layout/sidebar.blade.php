@@ -43,12 +43,12 @@
                 <span>Data Supplier</span>
             </a>
     
-            {{-- Data Pengguna --}}
+            <!-- {{-- Data Pengguna --}}
             <a href="{{ route('admin.pengguna.index') }}" 
                class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all group text-sm {{ request()->routeIs('admin.pengguna.index') ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white glass-hover' }}">
                 <i class="fas fa-users w-4 text-center group-hover:scale-110 transition-transform"></i>
                 <span>Data Pengguna</span>
-            </a>
+            </a> -->
     
             <div class="text-[9px] uppercase text-slate-500 font-bold pt-5 pb-2 px-3 tracking-widest">Transaksi</div>
             

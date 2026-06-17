@@ -177,7 +177,7 @@
                         </div>
                         <div>
                             <label class="block mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">No. HP</label>
-                            <input type="text" name="no_telp" value="{{ old('no_telp') }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all placeholder:text-slate-400" placeholder="Contoh : 08123456789" required>
+                            <input id="addPhone" type="text" name="no_telp" value="{{ old('no_telp', '08') }}" inputmode="numeric" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all placeholder:text-slate-400" placeholder="Contoh : 08123456789" required>
                             @error('no_telp')<span class="text-red-500 text-xs mt-1 font-semibold block">{{ $message }}</span>@enderror
                         </div>
                     </div>
@@ -230,7 +230,7 @@
                         </div>
                         <div>
                             <label class="block mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">No. HP</label>
-                            <input id="editPhone" type="text" name="no_telp" value="{{ old('no_telp') }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all text-slate-700" required>
+                            <input id="editPhone" type="text" inputmode="numeric" name="no_telp" value="{{ old('no_telp') }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all text-slate-700" required>
                             @error('no_telp')<span class="text-red-500 text-xs mt-1 font-semibold block">{{ $message }}</span>@enderror
                         </div>
                     </div>
@@ -330,7 +330,8 @@
         function openEditModal(id, nama, no_telp, alamat) {
             document.getElementById('editSupplierId').value = id;
             document.getElementById('editNama').value = nama;
-            document.getElementById('editPhone').value = no_telp;
+            var _editPhone = (no_telp || '').toString();
+            document.getElementById('editPhone').value = _editPhone.indexOf('08') === 0 ? _editPhone : ('08' + _editPhone.replace(/^0+/, ''));
             document.getElementById('editAddress').value = alamat;
             document.getElementById('editSupplierForm').action = `/admin/supplier/${id}`;
         }
@@ -344,6 +345,44 @@
         function openDeleteModal(id) {
             document.getElementById('deleteSupplierForm').action = `/admin/supplier/${id}`;
         }
+
+        // Membuat "08" menjadi prefix default yang tidak dapat dihapus/diubah
+        function lockPhonePrefix(input) {
+            if (!input) return;
+
+            function normalize() {
+                var digits = input.value.replace(/\D/g, '');
+                if (digits.indexOf('08') !== 0) {
+                    digits = '08' + digits.replace(/^0+/, '');
+                }
+                input.value = digits;
+            }
+
+            input.addEventListener('focus', function () {
+                if (input.value.indexOf('08') !== 0) input.value = '08';
+                requestAnimationFrame(function () {
+                    try {
+                        if (input.selectionStart < 2) {
+                            input.setSelectionRange(input.value.length, input.value.length);
+                        }
+                    } catch (e) {}
+                });
+            });
+
+            input.addEventListener('input', normalize);
+
+            input.addEventListener('keydown', function (e) {
+                var start = input.selectionStart;
+                var end = input.selectionEnd;
+                if (e.key === 'Backspace' && start <= 2 && end <= 2) e.preventDefault();
+                if (e.key === 'Delete' && start < 2) e.preventDefault();
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            lockPhonePrefix(document.getElementById('addPhone'));
+            lockPhonePrefix(document.getElementById('editPhone'));
+        });
 
         const Toast = Swal.mixin({
             toast: true,

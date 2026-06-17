@@ -13,7 +13,6 @@ class BarangSeeder extends Seeder
     {
         $kategoriList = DB::table('kategori')->pluck('id', 'nama')->toArray();
 
-        // Ubah 'image_url' atau nama filenya langsung sesuai dengan nama file fisik yang ada di folder public/storage/barang/
         $barangList = [
             [
                 'kategori' => 'Kulkas',
@@ -90,7 +89,7 @@ class BarangSeeder extends Seeder
                 'nama' => 'Mitochiba Food Chopper CH-100',
                 'harga' => 658170,
                 'deskripsi' => 'Andalan untuk menggiling daging dan bumbu dapur dalam jumlah banyak sekaligus.',
-                'nama_gambar' => 'foodprocessor_mito.jpg',
+                'nama_gambar' => 'hzbNEEVJIg008EACii7xWypo2AFohtmVvmfJtknM.jpg',
             ],
             [
                 'kategori' => 'Mixer',
@@ -139,14 +138,14 @@ class BarangSeeder extends Seeder
                 'nama' => 'Takahi Slow Cooker 0.7 L',
                 'harga' => 788000,
                 'deskripsi' => 'Sangat ideal untuk memasak kaldu, bubur, atau makanan pendamping ASI dengan stabil.',
-                'nama_gambar' => 'O5YCs1jdu5dytbWayDUhU57v10aKkcqevMPnun3P.jpg',
+                'nama_gambar' => 'QhmbWr7KadBX0Y5pfFcfk7n4eUZjSjox3CZ5c4LA.webp',
             ],
             [
                 'kategori' => 'Dispenser',
                 'nama' => 'Miyako Water Dispenser WDP-200',
                 'harga' => 655000,
                 'deskripsi' => 'Desain galon bawah sehingga kamu tidak perlu repot mengangkat galon berat.',
-                'nama_gambar' => 'dispenser_miyako.jpg',
+                'nama_gambar' => '2PvUnJzJuJGOHhPqnflIwWSO7ahfXQP07Qx6yYB2.webp',
             ],
             [
                 'kategori' => 'Juicer',
@@ -160,7 +159,7 @@ class BarangSeeder extends Seeder
         foreach ($barangList as $item) {
             $kategoriId = $kategoriList[$item['kategori']] ?? DB::table('kategori')->first()->id;
 
-            $gambarPath = 'storage/barang/' . $item['nama_gambar'];
+            $gambarPath = 'barang/' . $item['nama_gambar'];
 
             DB::table('barang')->insert([
                 'kategori_id' => $kategoriId,
