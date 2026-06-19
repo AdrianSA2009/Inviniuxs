@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @include('layout.partials.aos-head')
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" type="text/javascript"></script>
     
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -280,11 +281,33 @@
 
                 <div class="p-6 space-y-4">
                     <div>
-                        <label class="block mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Serial Number</label>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Serial Number</label>
+                            <button type="button" id="btnScanBarcode"
+                                class="flex items-center gap-1.5 px-3 py-1 bg-emerald-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-emerald-700 transition-all uppercase tracking-wider">
+                                <i class="fas fa-camera"></i>
+                                <span>Scan</span>
+                            </button>
+                        </div>
                         <input type="text" id="input-sn"
                             class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all uppercase placeholder:text-slate-400"
                             placeholder="Masukkan serial number">
                         <p id="sn-error" class="mt-1 text-xs text-red-500 hidden">Serial number tidak boleh kosong.</p>
+                        <!-- Scanner Viewport -->
+                        <div id="scanner-container" class="mt-3 hidden">
+                            <div class="relative rounded-xl overflow-hidden border-2 border-emerald-300 bg-black">
+                                <div id="reader" class="w-full"></div>
+                                <button type="button" id="btnStopScan"
+                                    class="absolute top-2 right-2 z-10 px-3 py-1.5 bg-red-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-red-700 transition-all uppercase tracking-wider flex items-center gap-1">
+                                    <i class="fas fa-stop-circle"></i>
+                                    <span>Stop</span>
+                                </button>
+                            </div>
+                            <p id="scan-status" class="mt-1.5 text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
+                                <i class="fas fa-circle-notch fa-spin"></i>
+                                <span>Mengarahkan kamera ke barcode...</span>
+                            </p>
+                        </div>
                     </div>
                     <div>
                         <label class="block mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nama Barang</label>
@@ -720,6 +743,10 @@
             snErr.classList.add('hidden');
             namaErr.classList.add('hidden');
 
+            // Reset scanner state when opening modal
+            if (isScanning) { stopScanner(); }
+            document.getElementById('scanner-container').classList.add('hidden');
+
             if (mode === 'edit' && index !== null && editUnitList[index]) {
                 snInput.value = editUnitList[index].sn;
                 namaInput.value = currentEditNamaBarang;
@@ -884,6 +911,172 @@
                 toast.addEventListener('mouseenter', Swal.stopTimer);
                 toast.addEventListener('mouseleave', Swal.resumeTimer);
             }
+        });
+
+        // ── Barcode Scanner (html5-qrcode) ──────────────────────────────────
+        let html5QrCode = null;
+        let isScanning = false;
+
+        function startScanner() {
+            const scannerContainer = document.getElementById('scanner-container');
+            const scanStatus = document.getElementById('scan-status');
+            scannerContainer.classList.remove('hidden');
+            scanStatus.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i><span>Mengarahkan kamera ke barcode...</span>';
+
+            if (html5QrCode && isScanning) {
+                // already running
+                return;
+            }
+
+            html5QrCode = new Html5Qrcode("reader");
+
+            const config = {
+                fps: 15,
+                qrbox: function(viewfinderWidth, viewfinderHeight) {
+                    // Use a wide rectangular scanning area optimized for barcodes
+                    const w = viewfinderWidth;
+                    const h = viewfinderHeight;
+                    const boxWidth = Math.floor(w * 0.85);
+                    const boxHeight = Math.floor(h * 0.45);
+                    return { width: boxWidth, height: boxHeight };
+                },
+                aspectRatio: 1.333334,
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.QR_CODE,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.CODE_39,
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.UPC_E,
+                    Html5QrcodeSupportedFormats.CODE_93,
+                    Html5QrcodeSupportedFormats.CODABAR,
+                    Html5QrcodeSupportedFormats.ITF,
+                ]
+            };
+
+            // Callback when barcode is detected
+            function onScanSuccess(decodedText, decodedResult) {
+                const snInput = document.getElementById('input-sn');
+                const normalized = normalizeSerial(decodedText);
+                snInput.value = normalized;
+
+                scanStatus.innerHTML = '<i class="fas fa-check-circle text-emerald-500"></i><span class="text-emerald-700 font-bold">Barcode terdeteksi: ' + normalized + '</span>';
+
+                setTimeout(function() { stopScanner(); }, 1200);
+
+                if (navigator.vibrate) { navigator.vibrate(200); }
+
+                try {
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    oscillator.frequency.value = 1200;
+                    oscillator.type = 'sine';
+                    gainNode.gain.value = 0.15;
+                    oscillator.start();
+                    setTimeout(() => { oscillator.stop(); audioCtx.close(); }, 150);
+                } catch(e) {}
+            }
+
+            function onScanError(errorMessage) {
+                // Scan error — ignore, keep scanning
+            }
+
+            function startCameraWithId(deviceId, cfg, statusEl) {
+                html5QrCode.start(
+                    { deviceId: { exact: deviceId } },
+                    cfg,
+                    onScanSuccess,
+                    onScanError
+                ).then(function() {
+                    isScanning = true;
+                }).catch(function(err) {
+                    // Fallback to user-facing camera
+                    startCameraWithConstraints({ facingMode: "user" }, cfg, statusEl);
+                });
+            }
+
+            function startCameraWithConstraints(constraints, cfg, statusEl) {
+                html5QrCode.start(
+                    constraints,
+                    cfg,
+                    onScanSuccess,
+                    onScanError
+                ).then(function() {
+                    isScanning = true;
+                }).catch(function(err) {
+                    statusEl.innerHTML = '<i class="fas fa-exclamation-triangle text-red-500"></i><span class="text-red-500">Gagal mengakses kamera. Pastikan mengizinkan akses kamera dan menggunakan HTTPS atau localhost.</span>';
+                    isScanning = false;
+                });
+            }
+
+            // Try to pick the best available camera (prefer rear/environment on phones, default on laptops)
+            Html5Qrcode.getCameras().then(function(devices) {
+                if (devices && devices.length) {
+                    var cameraId = devices[0].id;
+                    for (var i = 0; i < devices.length; i++) {
+                        var label = (devices[i].label || '').toLowerCase();
+                        if (label.includes('back') || label.includes('rear') || label.includes('environment')) {
+                            cameraId = devices[i].id;
+                            break;
+                        }
+                    }
+                    startCameraWithId(cameraId, config, scanStatus);
+                } else {
+                    startCameraWithConstraints({ facingMode: "user" }, config, scanStatus);
+                }
+            }).catch(function(err) {
+                startCameraWithConstraints({ facingMode: "user" }, config, scanStatus);
+            });
+        }
+
+        function stopScanner() {
+            const scannerContainer = document.getElementById('scanner-container');
+            if (html5QrCode && isScanning) {
+                html5QrCode.stop().then(function() {
+                    isScanning = false;
+                    scannerContainer.classList.add('hidden');
+                    html5QrCode.clear();
+                }).catch(function(err) {
+                    isScanning = false;
+                    scannerContainer.classList.add('hidden');
+                });
+            } else {
+                scannerContainer.classList.add('hidden');
+            }
+        }
+
+        document.getElementById('btnScanBarcode').addEventListener('click', function() {
+            const scannerContainer = document.getElementById('scanner-container');
+            if (isScanning) {
+                stopScanner();
+            } else {
+                startScanner();
+            }
+        });
+
+        document.getElementById('btnStopScan').addEventListener('click', function() {
+            stopScanner();
+        });
+
+        // Stop scanner when modalInputUnit is closed
+        const originalHideModal = hideModal;
+        hideModal = function(id) {
+            if (id === 'modalInputUnit' && isScanning) {
+                stopScanner();
+            }
+            originalHideModal(id);
+        };
+
+        // Also stop scanner when closing via close/cancel buttons
+        document.getElementById('btnCloseInputUnit').addEventListener('click', function() {
+            if (isScanning) stopScanner();
+        });
+        document.getElementById('btnCancelInputUnit').addEventListener('click', function() {
+            if (isScanning) stopScanner();
         });
 
         @if(session('toast_success'))
