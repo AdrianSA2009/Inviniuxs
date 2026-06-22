@@ -94,10 +94,13 @@ class BarangMasukController extends Controller
 
             $jumlahUnit = count($request->serial_number);
 
+            $supplier = DB::table('suppliers')->where('id', $request->supplier_id)->first();
+
             $barangMasuk = BarangMasuk::create([
                 'kode_transaksi' => $kodeTransaksi,
                 'barang_id' => $barang->id,
                 'supplier_id' => $request->supplier_id,
+                'supplier_nama' => $supplier->nama ?? '-',
                 'karyawan_id' => Auth::id(),
                 'tgl_masuk' => $request->tgl_masuk,
                 'jumlah' => $jumlahUnit,
@@ -142,6 +145,30 @@ class BarangMasukController extends Controller
         return response()->json(['exists' => $exists]);
     }
 
+    public function checkBarangName(Request $request)
+    {
+        $namaBarang = trim($request->query('nama_barang', ''));
+        $kategoriId = $request->query('kategori_id');
+
+        if ($namaBarang === '' || !$kategoriId) {
+            return response()->json(['exists' => false]);
+        }
+
+        $existingBarang = Barang::with('kategori')
+            ->where('nama', $namaBarang)
+            ->where('kategori_id', '!=', $kategoriId)
+            ->first();
+
+        if ($existingBarang) {
+            return response()->json([
+                'exists' => true,
+                'kategori_nama' => $existingBarang->kategori->nama ?? '-',
+            ]);
+        }
+
+        return response()->json(['exists' => false]);
+    }
+
     public function update(Request $request, $id)
     {
         $barangMasuk = BarangMasuk::with('unitBarang', 'barang')->findOrFail($id);
@@ -168,6 +195,33 @@ class BarangMasukController extends Controller
             }
 
             $unitIds = collect($request->input('unit_id', []))->map(fn($id) => $id === null || $id === '' ? null : (int) $id)->all();
+
+            // Check that locked units (already in barang_keluar) are not modified or deleted
+            $originalUnits = $barangMasuk->unitBarang->keyBy('id');
+            $submittedUnitIds = collect($unitIds)->filter()->all();
+
+            // Detect deleted units
+            $deletedUnitIds = $originalUnits->keys()->diff($submittedUnitIds);
+            foreach ($deletedUnitIds as $deletedId) {
+                $unit = $originalUnits->get($deletedId);
+                if ($unit && $unit->barang_keluar_id) {
+                    $validator->errors()->add('serial_number', 'Unit "' . $unit->serial_number . '" sudah keluar dan tidak dapat dihapus.');
+                    break;
+                }
+            }
+
+            // Detect modified serial numbers on locked units
+            foreach ($serialNumbers as $index => $serial) {
+                $unitId = $unitIds[$index] ?? null;
+                if ($unitId && $originalUnits->has($unitId)) {
+                    $original = $originalUnits->get($unitId);
+                    if ($original->barang_keluar_id && strtoupper(trim($original->serial_number)) !== $serial) {
+                        $validator->errors()->add('serial_number', 'Unit "' . $original->serial_number . '" sudah keluar dan tidak dapat diubah.');
+                        break;
+                    }
+                }
+            }
+
             foreach ($serialNumbers as $index => $serial) {
                 $exceptId = $unitIds[$index] ?? null;
                 $exists = UnitBarang::where('serial_number', $serial)
@@ -212,8 +266,11 @@ class BarangMasukController extends Controller
             $oldJumlah = $barangMasuk->jumlah;
             $newJumlah = count($serialNumbers);
 
+            $supplier = DB::table('suppliers')->where('id', $request->supplier_id)->first();
+
             $barangMasuk->barang_id = $barang->id;
             $barangMasuk->supplier_id = $request->supplier_id;
+            $barangMasuk->supplier_nama = $supplier->nama ?? '-';
             $barangMasuk->tgl_masuk = $request->tgl_masuk;
             $barangMasuk->jumlah = $newJumlah;
             $barangMasuk->save();
@@ -271,7 +328,14 @@ class BarangMasukController extends Controller
 
     public function destroy($id)
     {
-        $barangMasuk = BarangMasuk::findOrFail($id);
+        $barangMasuk = BarangMasuk::with('unitBarang')->findOrFail($id);
+
+        // Check if any unit has already been used in barang keluar
+        $lockedUnits = $barangMasuk->unitBarang->filter(fn($u) => $u->barang_keluar_id !== null);
+        if ($lockedUnits->isNotEmpty()) {
+            $lockedSns = $lockedUnits->pluck('serial_number')->implode(', ');
+            return redirect()->back()->with('error', 'Transaksi tidak dapat dihapus karena unit ' . $lockedSns . ' sudah keluar.');
+        }
 
         DB::beginTransaction();
 

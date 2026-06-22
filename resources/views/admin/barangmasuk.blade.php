@@ -9,6 +9,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @include('layout.partials.aos-head')
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
     
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -29,14 +32,7 @@
                 </button>
                 <h2 class="text-xl font-bold text-slate-800 tracking-tight">Manajemen Transaksi</h2>
             </div>
-            <div class="flex items-center gap-4">
-                <div class="hidden sm:block text-right">
-                    <p class="text-sm font-bold text-slate-900">Admin Gudang</p>
-                </div>
-                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-200">
-                    AG
-                </div>
-            </div>
+            @include('layout.partials.topbar-profile')
         </header>
 
         <main class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-slate-50">
@@ -81,7 +77,7 @@
                                 <td class="px-6 py-6 text-sm text-slate-500 font-medium">{{ $item->jumlah }} UNIT</td>
                                 <td class="px-6 py-6 text-center">
                                     <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">
-                                        {{ $item->supplier->nama ?? '-' }}
+                                        {{ $item->supplier->nama ?? $item->supplier_nama ?? '-' }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-6 text-center">
@@ -90,6 +86,7 @@
                                     </span>
                                 </td>
                                 <td class="px-8 py-6 text-right">
+                                    @php $hasLockedUnits = $item->unitBarang->contains(fn($u) => $u->barang_keluar_id !== null); @endphp
                                     <div class="flex items-center justify-center gap-2">
                                         <button type="button"
                                             onclick="bukaDetail({
@@ -97,7 +94,7 @@
                                                 tgl: '{{ $item->tgl_masuk }}',
                                                 barang: '{{ $item->barang->nama ?? '-' }}',
                                                 kategori: '{{ $item->barang->kategori->nama ?? '-' }}',
-                                                supplier: '{{ $item->supplier->nama ?? '-' }}',
+                                                supplier: '{{ $item->supplier->nama ?? $item->supplier_nama ?? '-' }}',
                                                 pic: '{{ $item->karyawan->nama ?? '-' }}',
                                                 jumlah: {{ $item->jumlah }},
                                                 units: {{ json_encode($item->unitBarang->map(fn($u) => ['sn' => $u->serial_number, 'nama' => $item->barang->nama ?? '-'])) }}
@@ -105,24 +102,40 @@
                                             class="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all" title="Detail">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <button type="button"
-                                            onclick="bukaEdit({
-                                                id: {{ $item->id }},
-                                                tgl: '{{ $item->tgl_masuk }}',
-                                                kode: '{{ $item->kode_transaksi }}',
-                                                kategori_id: {{ $item->barang->kategori_id ?? 'null' }},
-                                                nama: '{{ addslashes($item->barang->nama ?? '') }}',
-                                                supplier_id: {{ $item->supplier_id ?? 'null' }},
-                                                units: {{ json_encode($item->unitBarang->map(fn($u) => ['id' => $u->id, 'sn' => $u->serial_number])) }}
-                                            })"
-                                            class="p-2 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button type="button"
-                                            onclick="bukaDelete({{ $item->id }}, '{{ $item->kode_transaksi }}')"
-                                            class="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all" title="Hapus">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                        @if($hasLockedUnits)
+                                            <button type="button" disabled
+                                                class="p-2 rounded-lg text-slate-200 cursor-not-allowed"
+                                                title="Tidak dapat diubah karena ada unit yang sudah keluar">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        @else
+                                            <button type="button"
+                                                onclick="bukaEdit({
+                                                    id: {{ $item->id }},
+                                                    tgl: '{{ $item->tgl_masuk }}',
+                                                    kode: '{{ $item->kode_transaksi }}',
+                                                    kategori_id: {{ $item->barang->kategori_id ?? 'null' }},
+                                                    nama: '{{ addslashes($item->barang->nama ?? '') }}',
+                                                    supplier_id: {{ $item->supplier_id ?? 'null' }},
+                                                    units: {{ json_encode($item->unitBarang->map(fn($u) => ['id' => $u->id, 'sn' => $u->serial_number, 'locked' => $u->barang_keluar_id !== null])) }}
+                                                })"
+                                                class="p-2 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        @endif
+                                        @if($hasLockedUnits)
+                                            <button type="button" disabled
+                                                class="p-2 rounded-lg text-slate-200 cursor-not-allowed"
+                                                title="Tidak dapat dihapus karena ada unit yang sudah keluar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        @else
+                                            <button type="button"
+                                                onclick="bukaDelete({{ $item->id }}, '{{ $item->kode_transaksi }}')"
+                                                class="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all" title="Hapus">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -185,13 +198,13 @@
                     <div class="space-y-6 mb-6">
                         <div>
                             <label class="block mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tanggal Masuk</label>
-                            <input type="date" name="tgl_masuk" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all" required>
+                            <input type="text" name="tgl_masuk" class="tgl-input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all" placeholder="DD/MM/YYYY" required>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Kategori Barang</label>
-                                <select name="kategori_id" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all" required>
+                                <select name="kategori_id" id="add-kategori" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold transition-all" required>
                                     <option value="" disabled selected>Pilih kategori barang</option>
                                     @foreach($kategori as $kat)
                                         <option value="{{ $kat->id }}">{{ $kat->nama }}</option>
@@ -357,7 +370,7 @@
                     <div class="grid grid-cols-2 gap-3 mb-4">
                         <div>
                             <label class="block mb-1 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Tanggal Masuk</label>
-                            <input type="date" id="detail-tgl" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none text-xs font-semibold text-slate-700" readonly>
+                            <input type="text" id="detail-tgl" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none text-xs font-semibold text-slate-700" readonly>
                         </div>
                         <div>
                             <label class="block mb-1 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Kategori</label>
@@ -437,8 +450,8 @@
                     <div class="space-y-6 mb-6">
                         <div>
                             <label class="block mb-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tanggal Masuk</label>
-                            <input type="date" name="tgl_masuk" id="edit-tgl"
-                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all text-slate-700" required>
+                            <input type="text" name="tgl_masuk" id="edit-tgl"
+                                class="tgl-input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all text-slate-700" placeholder="DD/MM/YYYY" required>
                         </div>
     
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -546,6 +559,31 @@
     @include('layout.partials.aos-scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // ── Flatpickr date picker (DD/MM/YYYY) ─────────────────────────
+        function formatDateID(dateStr) {
+            if (!dateStr) return '-';
+            const d = new Date(dateStr);
+            if (isNaN(d)) return dateStr;
+            const dd = String(d.getDate()).padStart(2, '0');
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const yyyy = d.getFullYear();
+            return dd + '/' + mm + '/' + yyyy;
+        }
+
+        function initFlatpickr() {
+            document.querySelectorAll('.tgl-input').forEach(function(input) {
+                flatpickr(input, {
+                    dateFormat: 'Y-m-d',
+                    altInput: true,
+                    altFormat: 'd/m/Y',
+                    locale: 'id',
+                    allowInput: true,
+                    disableMobile: true,
+                });
+            });
+        }
+        document.addEventListener('DOMContentLoaded', initFlatpickr);
+
         // ── Helpers: show/hide modal ───────────────────────────────────────
         function showModal(id) {
             const el = document.getElementById(id);
@@ -563,7 +601,7 @@
         // ── MODAL DETAIL ───────────────────────────────────────────────────
         function bukaDetail(data) {
             document.getElementById('detail-kode').textContent     = data.kode;
-            document.getElementById('detail-tgl').value           = data.tgl;
+            document.getElementById('detail-tgl').value           = formatDateID(data.tgl);
             document.getElementById('detail-kategori').value      = data.kategori;
             document.getElementById('detail-supplier').value      = data.supplier;
             document.getElementById('detail-jumlah').value        = data.jumlah + ' Unit';
@@ -593,15 +631,23 @@
         // ── MODAL EDIT ─────────────────────────────────────────────────────
         function bukaEdit(data) {
             document.getElementById('edit-kode-label').textContent = data.kode;
-            document.getElementById('edit-tgl').value = data.tgl;
-            document.getElementById('edit-kategori').value = data.kategori_id || '';
+            const editTglEl = document.getElementById('edit-tgl');
+            if (editTglEl._flatpickr) {
+                editTglEl._flatpickr.setDate(data.tgl || '', true);
+            } else {
+                editTglEl.value = data.tgl || '';
+            }
+            const editKatEl = document.getElementById('edit-kategori');
+            editKatEl.value = data.kategori_id || '';
+            editKatEl.dataset.prevValue = editKatEl.value;
             document.getElementById('edit-supplier').value = data.supplier_id || '';
             currentEditNamaBarang = data.nama || '';
 
             editUnitList = Array.isArray(data.units) ? data.units.map(function(unit) {
                 return {
                     id: unit.id || null,
-                    sn: unit.sn || ''
+                    sn: unit.sn || '',
+                    locked: !!unit.locked
                 };
             }) : [];
 
@@ -670,13 +716,23 @@
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-50/50 transition-colors';
                 if (mode === 'edit') {
-                    tr.innerHTML =
-                        '<td class="px-6 py-4 text-left text-xs font-bold text-slate-800">' + (index + 1) + '</td>' +
-                        '<td class="px-6 py-4 text-left"><span class="text-xs font-mono font-bold text-blue-600 px-2 py-1 bg-blue-50 rounded-lg uppercase tracking-tight">' + unit.sn + '</span></td>' +
-                        '<td class="px-6 py-4 text-left text-xs font-medium text-slate-700 flex items-center gap-2">' +
-                            '<button type="button" onclick="editUnitRow(' + index + ')" class="px-3 py-1 bg-amber-50 text-amber-700 rounded-lg border border-amber-100 hover:bg-amber-100 transition">Edit</button>' +
-                            '<button type="button" onclick="deleteEditUnit(' + index + ')" class="px-3 py-1 bg-red-50 text-red-700 rounded-lg border border-red-100 hover:bg-red-100 transition">Hapus</button>' +
-                        '</td>';
+                    if (unit.locked) {
+                        tr.className = 'bg-slate-50/80 transition-colors';
+                        tr.innerHTML =
+                            '<td class="px-6 py-4 text-left text-xs font-bold text-slate-400">' + (index + 1) + '</td>' +
+                            '<td class="px-6 py-4 text-left"><span class="text-xs font-mono font-bold text-slate-400 px-2 py-1 bg-slate-100 rounded-lg uppercase tracking-tight">' + unit.sn + '</span></td>' +
+                            '<td class="px-6 py-4 text-left text-xs font-medium text-slate-400 flex items-center gap-2">' +
+                                '<span class="inline-flex items-center gap-1 px-3 py-1 bg-slate-100 text-slate-400 rounded-lg border border-slate-200 text-[10px] font-bold uppercase tracking-wider"><i class="fas fa-lock text-[9px]"></i> Locked</span>' +
+                            '</td>';
+                    } else {
+                        tr.innerHTML =
+                            '<td class="px-6 py-4 text-left text-xs font-bold text-slate-800">' + (index + 1) + '</td>' +
+                            '<td class="px-6 py-4 text-left"><span class="text-xs font-mono font-bold text-blue-600 px-2 py-1 bg-blue-50 rounded-lg uppercase tracking-tight">' + unit.sn + '</span></td>' +
+                            '<td class="px-6 py-4 text-left text-xs font-medium text-slate-700 flex items-center gap-2">' +
+                                '<button type="button" onclick="editUnitRow(' + index + ')" class="px-3 py-1 bg-amber-50 text-amber-700 rounded-lg border border-amber-100 hover:bg-amber-100 transition">Edit</button>' +
+                                '<button type="button" onclick="deleteEditUnit(' + index + ')" class="px-3 py-1 bg-red-50 text-red-700 rounded-lg border border-red-100 hover:bg-red-100 transition">Hapus</button>' +
+                            '</td>';
+                    }
                 } else {
                     tr.innerHTML =
                         '<td class="px-6 py-4 text-left text-xs font-bold text-slate-800">' + (index + 1) + '</td>' +
@@ -783,6 +839,34 @@
             return data.exists === true;
         }
 
+        async function checkBarangNameConflict(namaBarang, kategoriId) {
+            if (!namaBarang || !kategoriId) {
+                return { exists: false };
+            }
+
+            const endpoint = '{{ route('barang-masuk.check-barang-name') }}';
+            const url = `${endpoint}?nama_barang=${encodeURIComponent(namaBarang)}&kategori_id=${encodeURIComponent(kategoriId)}`;
+
+            const response = await fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!response.ok) {
+                return { exists: false };
+            }
+
+            return await response.json();
+        }
+
+        function getSelectedKategoriId() {
+            if (activeUnitMode === 'edit') {
+                return document.getElementById('edit-kategori').value;
+            }
+            return document.getElementById('add-kategori').value;
+        }
+
         document.getElementById('btnOpenInputUnit').addEventListener('click', function () {
             openInputUnit('add');
         });
@@ -799,11 +883,19 @@
         });
 
         function editUnitRow(index) {
+            if (editUnitList[index] && editUnitList[index].locked) {
+                Toast.fire({ icon: 'error', title: 'Unit ini sudah keluar dan tidak dapat diubah.' });
+                return;
+            }
             openInputUnit('edit', index);
         }
 
         function deleteEditUnit(index) {
             if (index === null || index === undefined) {
+                return;
+            }
+            if (editUnitList[index] && editUnitList[index].locked) {
+                Toast.fire({ icon: 'error', title: 'Unit ini sudah keluar dan tidak dapat dihapus.' });
                 return;
             }
             editUnitList.splice(index, 1);
@@ -848,6 +940,15 @@
                     valid = false;
                 }
                 if (!valid) {
+                    return;
+                }
+
+                // Check if nama barang exists in a different kategori
+                const kategoriId = getSelectedKategoriId();
+                const nameConflict = await checkBarangNameConflict(nama, kategoriId);
+                if (nameConflict.exists) {
+                    namaErr.textContent = 'Barang "' + nama + '" sudah terdaftar di kategori ' + nameConflict.kategori_nama + '.';
+                    namaErr.classList.remove('hidden');
                     return;
                 }
 
@@ -1077,6 +1178,44 @@
         });
         document.getElementById('btnCancelInputUnit').addEventListener('click', function() {
             if (isScanning) stopScanner();
+        });
+
+        // ── Kategori change guard ─────────────────────────────────────────
+        async function guardKategoriChange(selectEl, getUnitListFn) {
+            const units = getUnitListFn();
+            if (!units || units.length === 0) return;
+
+            // All units in one transaction share the same nama — use the first
+            const namaBarang = units[0].nama || currentEditNamaBarang;
+            if (!namaBarang) return;
+
+            const newKategoriId = selectEl.value;
+            if (!newKategoriId) return;
+
+            const conflict = await checkBarangNameConflict(namaBarang, newKategoriId);
+            if (conflict.exists) {
+                Toast.fire({
+                    icon: 'error',
+                    title: 'Unit "' + namaBarang + '" berada pada kategori ' + conflict.kategori_nama + '.',
+                });
+                selectEl.value = selectEl.dataset.prevValue || '';
+            } else {
+                selectEl.dataset.prevValue = newKategoriId;
+            }
+        }
+
+        const addKategoriEl = document.getElementById('add-kategori');
+        const editKategoriEl = document.getElementById('edit-kategori');
+
+        // Store initial value on focus so we can revert
+        addKategoriEl.addEventListener('focus', function() { this.dataset.prevValue = this.value; });
+        editKategoriEl.addEventListener('focus', function() { this.dataset.prevValue = this.value; });
+
+        addKategoriEl.addEventListener('change', function() {
+            guardKategoriChange(this, function() { return addUnitList; });
+        });
+        editKategoriEl.addEventListener('change', function() {
+            guardKategoriChange(this, function() { return editUnitList; });
         });
 
         @if(session('toast_success'))

@@ -30,8 +30,12 @@
             </a>
         </nav>
 
-        <div class="p-4 border-t border-slate-700">
-            <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center text-slate-400 gap-3 px-4 hover:text-white transition-all">
+        <div class="p-4 border-t border-slate-700 space-y-1">
+            <a href="{{ route('settings') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all {{ request()->routeIs('settings') ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white glass-hover' }}">
+                <i class="fas fa-cog w-5 text-center"></i>
+                <span class="font-medium">Pengaturan</span>
+            </a>
+            <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center text-slate-400 gap-3 px-4 py-2.5 hover:text-white transition-all">
                 <i class="fas fa-power-off w-5 text-center"></i>
                 <span class="font-medium">Logout</span>
             </a>

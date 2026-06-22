@@ -57,13 +57,13 @@
         </div>
 
         <!-- Bagian Kanan -->
-        <div class="p-8 md:p-15 bg-slate-900 flex flex-col justify-center">
+        <div class="p-6 sm:p-8 md:p-15 bg-slate-900 flex flex-col justify-center">
             <div class="mb-2 text-center md:text-left">
-                <h3 class="text-3xl font-bold text-white mb-2">Selamat Datang Kembali!</h3>
-                <p class="text-slate-400">Silahkan masuk ke akun anda.</p>
+                <h3 class="text-2xl md:text-3xl font-bold text-white mb-1 md:mb-2">Selamat Datang Kembali!</h3>
+                <p class="text-slate-400 text-sm md:text-base">Silahkan masuk ke akun anda.</p>
             </div>
 
-            <form action="{{ route('login') }}" method="POST" class="space-y-6">
+            <form action="{{ route('login') }}" method="POST" class="space-y-4 md:space-y-6">
                 @csrf
             
                 @if(session()->has('loginError'))
@@ -80,7 +80,7 @@
                             <i class="fas fa-user-shield"></i>
                         </span>
                         <input type="text" name="username" value="{{ old('username') }}" placeholder="Masukkan Username" 
-                            class="w-full bg-slate-800/40 border border-slate-700 text-white text-sm rounded-xl px-11 py-4 outline-none transition-all input-focus hover:border-slate-600 placeholder:text-slate-400" required>
+                            class="w-full bg-slate-800/40 border border-slate-700 text-white text-sm rounded-xl px-10 py-3 md:px-11 md:py-4 outline-none transition-all input-focus hover:border-slate-600 placeholder:text-slate-400" required>
                     </div>
                 </div>
             
@@ -91,7 +91,7 @@
                             <i class="fas fa-key"></i>
                         </span>
                         <input type="password" name="password" id="passwordInput" placeholder="Masukkan Password" 
-                            class="w-full bg-slate-800/40 border border-slate-700 text-white text-sm rounded-xl px-11 py-4 outline-none transition-all input-focus hover:border-slate-600 placeholder:text-slate-400" required>
+                            class="w-full bg-slate-800/40 border border-slate-700 text-white text-sm rounded-xl px-10 py-3 md:px-11 md:py-4 outline-none transition-all input-focus hover:border-slate-600 placeholder:text-slate-400" required>
                         <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-500 hover:text-white transition-colors">
                             <i class="fas fa-eye" id="passwordIcon"></i>
                         </button>
@@ -106,7 +106,7 @@
             
                 <div data-aos="fade-up" data-aos-delay="500">
                     <button type="submit" 
-                        class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-xl shadow-blue-900/30 transition-all active:scale-[0.97] flex items-center justify-center gap-3">
+                        class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 md:py-4 rounded-xl shadow-xl shadow-blue-900/30 transition-all active:scale-[0.97] flex items-center justify-center gap-3 text-sm md:text-base">
                         <span>Masuk Dashboard</span>
                         <i class="fas fa-sign-in-alt"></i>
                     </button>

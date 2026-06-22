@@ -50,14 +50,7 @@
                 </button>
                 <h2 class="text-xl font-bold text-slate-800 tracking-tight">Dashboard Overview</h2>
             </div>
-            <div class="flex items-center gap-4">
-                <div class="hidden sm:block text-right">
-                    <p class="text-sm font-bold text-slate-900">Admin Gudang</p>
-                </div>
-                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-200">
-                    AG
-                </div>
-            </div>
+            @include('layout.partials.topbar-profile')
         </header>
         <!-- End Top Navbar -->
 

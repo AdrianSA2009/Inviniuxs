@@ -46,14 +46,7 @@
                 </button>
                 <h2 class="text-xl font-bold text-slate-800 tracking-tight">Manajemen Inventaris</h2>
             </div>
-            <div class="flex items-center gap-4">
-                <div class="hidden sm:block text-right">
-                    <p class="text-sm font-bold text-slate-900">Admin Gudang</p>
-                </div>
-                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-200">
-                    AG
-                </div>
-            </div>
+            @include('layout.partials.topbar-profile')
         </header>
         <!-- End Top Navbar -->
 
@@ -299,18 +292,20 @@
                         
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="md:col-span-2 space-y-1.5">
-                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nama Perangkat</label>
+                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nama Barang</label>
                                     <input type="text" id="editNama" name="nama" required
                                         class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none text-slate-700 font-medium">
+                                    <span id="errorEditNama" class="text-red-500 text-xs mt-1 hidden block"></span>
                                 </div>
                             
                                 <div class="space-y-1.5">
                                     <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Harga Satuan (Rp)</label>
                                     <div class="relative">
                                         <span class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">Rp</span>
-                                        <input type="number" id="editHarga" name="harga" required min="0"
+                                        <input type="number" id="editHarga" name="harga" required min="1"
                                             class="w-full pl-12 pr-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none text-slate-700 font-bold">
                                     </div>
+                                    <span id="errorEditHarga" class="text-red-500 text-xs mt-1 hidden block"></span>
                                 </div>
                             
                                 <div class="space-y-1.5">
@@ -394,7 +389,7 @@
                             <label class="category-item relative cursor-pointer group">
                                 <input type="radio" name="exportCategory" value="all" class="peer hidden" checked>
                                 <div class="p-4 text-center rounded-2xl border-2 border-slate-50 bg-slate-50 text-slate-600 font-bold text-[11px] transition-all peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:text-green-700 group-hover:bg-slate-100 items-center">
-                                    <span class="category-name">Semua Data</span>
+                                    <span class="category-name">Semua Kategori</span>
                                 </div>
                             </label>
                             @foreach ($categories as $kategori)
@@ -612,7 +607,7 @@
             showModal('modalDetail');
         }
 
-        // Buka Modal Edit dengan data barang
+        // Buka modal Edit dengan data barang
         function bukaEdit(data) {
             document.getElementById('editBarangId').value = data.id;
             document.getElementById('editNama').value = data.nama || '';
@@ -620,6 +615,19 @@
             document.getElementById('editKategori').value = data.kategori_id || '';
             document.getElementById('editDeskripsi').value = data.deskripsi || '';
             document.getElementById('editGambar').value = '';
+            // Reset error
+            const inputNama = document.getElementById('editNama');
+            const errorMsg = document.getElementById('errorEditNama');
+            const inputHarga = document.getElementById('editHarga');
+            const errorHarga = document.getElementById('errorEditHarga');
+            inputNama.classList.remove('border-red-500');
+            errorMsg.classList.add('hidden');
+            errorMsg.classList.remove('block');
+            errorMsg.innerText = '';
+            inputHarga.classList.remove('border-red-500');
+            errorHarga.classList.add('hidden');
+            errorHarga.classList.remove('block');
+            errorHarga.innerText = '';
             setEditGambarPreview(data.gambar_url || null);
             showModal('modalEdit');
         }
@@ -668,6 +676,21 @@
 
             const submitBtn = document.getElementById('submitEditBtn');
             const originalText = submitBtn.textContent;
+            const inputNama = document.getElementById('editNama');
+            const errorMsg = document.getElementById('errorEditNama');
+            const inputHarga = document.getElementById('editHarga');
+            const errorHarga = document.getElementById('errorEditHarga');
+
+            // Reset errors
+            inputNama.classList.remove('border-red-500');
+            errorMsg.classList.add('hidden');
+            errorMsg.classList.remove('block');
+            errorMsg.innerText = '';
+            inputHarga.classList.remove('border-red-500');
+            errorHarga.classList.add('hidden');
+            errorHarga.classList.remove('block');
+            errorHarga.innerText = '';
+
             submitBtn.disabled = true;
             submitBtn.textContent = 'Menyimpan...';
 
@@ -698,8 +721,25 @@
                         location.reload();
                     }, 700);
                 } else if (response.status === 422 && data.errors) {
-                    const firstError = Object.values(data.errors)[0][0] || 'Validasi gagal.';
-                    showToast(firstError, 'error');
+                    let hasInlineError = false;
+                    if (data.errors.nama) {
+                        inputNama.classList.add('border-red-500');
+                        errorMsg.innerText = data.errors.nama[0];
+                        errorMsg.classList.remove('hidden');
+                        errorMsg.classList.add('block');
+                        hasInlineError = true;
+                    }
+                    if (data.errors.harga) {
+                        inputHarga.classList.add('border-red-500');
+                        errorHarga.innerText = data.errors.harga[0];
+                        errorHarga.classList.remove('hidden');
+                        errorHarga.classList.add('block');
+                        hasInlineError = true;
+                    }
+                    if (!hasInlineError) {
+                        const firstError = Object.values(data.errors)[0][0] || 'Validasi gagal.';
+                        showToast(firstError, 'error');
+                    }
                 } else {
                     showToast(data.message || 'Gagal menyimpan data', 'error');
                 }
@@ -709,6 +749,23 @@
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;
             }
+        });
+
+        // Clear error on input
+        document.getElementById('editNama').addEventListener('input', function() {
+            this.classList.remove('border-red-500');
+            const errorMsg = document.getElementById('errorEditNama');
+            errorMsg.classList.add('hidden');
+            errorMsg.classList.remove('block');
+            errorMsg.innerText = '';
+        });
+
+        document.getElementById('editHarga').addEventListener('input', function() {
+            this.classList.remove('border-red-500');
+            const errorHarga = document.getElementById('errorEditHarga');
+            errorHarga.classList.add('hidden');
+            errorHarga.classList.remove('block');
+            errorHarga.innerText = '';
         });
 
         const Toast = Swal.mixin({

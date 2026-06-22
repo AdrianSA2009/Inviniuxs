@@ -8,6 +8,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @include('layout.partials.aos-head')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
     
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -28,14 +31,7 @@
                 </button>
                 <h2 class="text-xl font-bold text-slate-800 tracking-tight">Manajemen Transaksi</h2>
             </div>
-            <div class="flex items-center gap-4">
-                <div class="hidden sm:block text-right">
-                    <p class="text-sm font-bold text-slate-900">Admin Gudang</p>
-                </div>
-                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-200">
-                    AG
-                </div>
-            </div>
+            @include('layout.partials.topbar-profile')
         </header>
 
         <main class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-slate-50">
@@ -180,7 +176,7 @@
                     <div class="space-y-6 mb-6">
                         <div>
                             <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tanggal Keluar</label>
-                            <input type="date" name="tgl_keluar" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold  transition-all" required>
+                            <input type="text" name="tgl_keluar" class="tgl-input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-semibold  transition-all" placeholder="DD/MM/YYYY" required>
                         </div>
                         <div>
                             <label class="block mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Penerima</label>
@@ -383,8 +379,8 @@
                     <div class="space-y-6 mb-6">
                         <div>
                             <label class="block mb-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tanggal Keluar</label>
-                            <input type="date" name="tgl_keluar" id="edit-tgl"
-                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all text-slate-700" required>
+                            <input type="text" name="tgl_keluar" id="edit-tgl"
+                                class="tgl-input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none text-sm font-semibold transition-all text-slate-700" placeholder="DD/MM/YYYY" required>
                         </div>
                         <div>
                             <label class="block mb-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Penerima</label>
@@ -467,6 +463,31 @@
     @include('layout.partials.aos-scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // ── Flatpickr date picker (DD/MM/YYYY) ─────────────────────────
+        function formatDateID(dateStr) {
+            if (!dateStr) return '-';
+            const d = new Date(dateStr);
+            if (isNaN(d)) return dateStr;
+            const dd = String(d.getDate()).padStart(2, '0');
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const yyyy = d.getFullYear();
+            return dd + '/' + mm + '/' + yyyy;
+        }
+
+        function initFlatpickr() {
+            document.querySelectorAll('.tgl-input').forEach(function(input) {
+                flatpickr(input, {
+                    dateFormat: 'Y-m-d',
+                    altInput: true,
+                    altFormat: 'd/m/Y',
+                    locale: 'id',
+                    allowInput: true,
+                    disableMobile: true,
+                });
+            });
+        }
+        document.addEventListener('DOMContentLoaded', initFlatpickr);
+
         function showModal(id) {
             const el = document.getElementById(id);
             if (!el) return;
@@ -505,7 +526,7 @@
 
         function bukaDetail(data) {
             document.getElementById('detail-jumlah').value = data.jumlah + ' Unit' || '-';
-            document.getElementById('detail-tgl').value = new Date(data.tgl).toLocaleDateString('id-ID') || '-';
+            document.getElementById('detail-tgl').value = formatDateID(data.tgl) || '-';
             document.getElementById('detail-penerima').value = data.penerima || '-';
             document.getElementById('detail-pic').value = data.pic || '-';
             
@@ -745,8 +766,15 @@
         }
 
         function bukaEdit(data) {
+            activeUnitMode = 'edit';
+            activeUnitIndex = null;
             document.getElementById('edit-penerima').value = data.penerima || '';
-            document.getElementById('edit-tgl').value = data.tgl || '';
+            const editTglEl = document.getElementById('edit-tgl');
+            if (editTglEl._flatpickr) {
+                editTglEl._flatpickr.setDate(data.tgl || '', true);
+            } else {
+                editTglEl.value = data.tgl || '';
+            }
             currentBarangKeluarId = data.id;
             
             const form = document.getElementById('formEdit');

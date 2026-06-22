@@ -10,6 +10,7 @@ use App\Http\Controllers\manajer\DashboardManajerController;
 use App\Http\Controllers\manajer\BarangManajerController;
 use App\Http\Controllers\admin\PenggunaController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\SettingController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -27,6 +28,10 @@ Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])->name
 Route::middleware('auth')->group(function () {
 
     Route::post('/logout', [loginController::class, 'logout'])->name('logout');
+
+    Route::get('/settings', [SettingController::class, 'index'])->name('settings');
+    Route::put('/settings/profile', [SettingController::class, 'updateProfile'])->name('settings.profile');
+    Route::put('/settings/password', [SettingController::class, 'updatePassword'])->name('settings.password');
 
     Route::prefix('admin')->middleware('role:admin_gudang')->group(function () {
         Route::get('/', [DashboardAdminController::class, 'index'])->name('dashboardadmin');

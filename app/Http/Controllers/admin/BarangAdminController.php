@@ -15,6 +15,7 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Table;
 use PhpOffice\PhpSpreadsheet\Worksheet\Table\TableStyle;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class BarangAdminController extends Controller
 {
@@ -262,11 +263,19 @@ class BarangAdminController extends Controller
             $barang = Barang::findOrFail($id);
 
             $validator = Validator::make($request->all(), [
-                'nama' => 'required|string|max:255',
-                'harga' => 'required|numeric|min:0',
+                'nama' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    Rule::unique('barang', 'nama')->ignore($id),
+                ],
+                'harga' => 'required|numeric|min:1',
                 'kategori_id' => 'required|integer',
                 'deskripsi' => 'nullable|string',
                 'gambar' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            ], [
+                'nama.unique' => 'Nama barang sudah ada, silakan gunakan nama lain!',
+                'harga.min' => 'Harga harus lebih dari 0!',
             ]);
 
             $validator->after(function ($validator) use ($request) {
@@ -300,6 +309,18 @@ class BarangAdminController extends Controller
                 'message' => 'Data barang berhasil diperbarui',
                 'data' => $barang
             ], 200);
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->getCode() === '23000') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal.',
+                    'errors' => ['nama' => ['Nama barang sudah ada, silakan gunakan nama lain!']]
+                ], 422);
+            }
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 400);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

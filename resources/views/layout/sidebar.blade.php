@@ -67,7 +67,11 @@
             </a>
         </nav>
 
-        <div class="p-3 border-t border-slate-700">
+        <div class="p-3 border-t border-slate-700 space-y-1">
+            <a href="{{ route('settings') }}" class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all text-sm {{ request()->routeIs('settings') ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white glass-hover' }}">
+                <i class="fas fa-cog w-4 text-center"></i>
+                <span class="font-medium">Pengaturan</span>
+            </a>
             <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center text-slate-400 gap-2.5 px-3 py-2.5 hover:text-white transition-all text-sm">
                 <i class="fas fa-power-off w-4 text-center"></i>
                 <span class="font-medium">Logout</span>

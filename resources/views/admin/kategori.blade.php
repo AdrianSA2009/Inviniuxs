@@ -36,14 +36,7 @@
                 </button>
                 <h2 class="text-xl font-bold text-slate-800 tracking-tight">Kategori inventaris</h2>
             </div>
-            <div class="flex items-center gap-4">
-                <div class="hidden sm:block text-right">
-                    <p class="text-sm font-bold text-slate-900">Admin Gudang</p>
-                </div>
-                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-200">
-                    AG
-                </div>
-            </div>
+            @include('layout.partials.topbar-profile')
         </header>
 
         <main class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-slate-50">
