@@ -262,6 +262,12 @@ class BarangMasukController extends Controller
                 ]
             );
 
+            // Update existing barang's category if it changed
+            if ($barang->kategori_id != $request->kategori_id) {
+                $barang->kategori_id = $request->kategori_id;
+                $barang->save();
+            }
+
             $oldBarang = $barangMasuk->barang;
             $oldJumlah = $barangMasuk->jumlah;
             $newJumlah = count($serialNumbers);
