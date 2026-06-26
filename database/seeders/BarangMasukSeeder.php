@@ -46,7 +46,7 @@ class BarangMasukSeeder extends Seeder
                 'supplier_id' => !empty($supplierIds) ? $supplierIds[array_rand($supplierIds)] : $fallbackSupplierId,
                 'karyawan_id' => !empty($karyawanIds) ? $karyawanIds[array_rand($karyawanIds)] : $fallbackKaryawanId,
                 'tgl_masuk' => $tglMasuk->format('Y-m-d'),
-                'jumlah' => $faker->numberBetween(2, 5),
+                'jumlah' => $faker->numberBetween(5, 10),
             ]);
         }
     }

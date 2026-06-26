@@ -45,6 +45,14 @@ class BarangKeluarSeeder extends Seeder
 
             $barangId = $availableItems[array_rand($availableItems)];
 
+            // Get current stock to ensure we don't go below 5
+            $currentStock = DB::table('barang')->where('id', $barangId)->value('stok');
+            
+            // Skip if stock is already at or below 5
+            if ($currentStock <= 5) {
+                continue;
+            }
+
             $availableUnitIds = DB::table('unit_barang')
                 ->where('barang_id', $barangId)
                 ->whereNull('barang_keluar_id')
@@ -54,7 +62,10 @@ class BarangKeluarSeeder extends Seeder
             if (empty($availableUnitIds)) {
                 continue;
             }
-            $jumlahKeluar = min(count($availableUnitIds), $faker->numberBetween(1, 3));
+            
+            // Calculate maximum units we can take out while keeping at least 5
+            $maxCanTake = $currentStock - 5;
+            $jumlahKeluar = min(count($availableUnitIds), $maxCanTake, $faker->numberBetween(1, 3));
             
             shuffle($availableUnitIds);
             $selectedUnitIds = array_slice($availableUnitIds, 0, $jumlahKeluar);

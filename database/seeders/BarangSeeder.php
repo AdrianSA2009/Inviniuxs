@@ -167,7 +167,7 @@ class BarangSeeder extends Seeder
                 'harga' => $item['harga'],
                 'deskripsi' => $item['deskripsi'],
                 'gambar' => $gambarPath,
-                'stok' => 0,
+                'stok' => 0, // Will be incremented by UnitBarangSeeder based on units created
             ]);
         }
     }

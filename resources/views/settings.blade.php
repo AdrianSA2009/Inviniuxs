@@ -16,7 +16,11 @@
 </head>
 <body class="bg-slate-50 text-gray-800 h-screen flex overflow-hidden">
 
-    @include('layout.sidebar')
+    @if(auth()->user()->role === 'manajer')
+        @include('layout.sidebar-manajer')
+    @else
+        @include('layout.sidebar')
+    @endif
     <div class="flex-1 flex flex-col w-full md:ml-72 overflow-hidden transition-all duration-300">
         <header class="bg-white/80 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between px-8 py-4 border-b border-slate-100">
             <div class="flex items-center gap-4">

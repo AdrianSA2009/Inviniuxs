@@ -7,12 +7,52 @@ use Illuminate\Http\Request;
 use App\Models\Barang;
 use App\Models\BarangKeluar;
 use App\Models\UnitBarang;
+use App\Models\LowStockAlert;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use App\Events\LowStockNotification;
 
 class BarangKeluarController extends Controller
 {
+    /**
+     * Check if stock is low and create alert
+     */
+    private function checkAndCreateLowStockAlert($barang)
+    {
+        if ($barang->stok <= 3 && $barang->stok > 0) {
+            // Broadcast immediately for real-time notification (happen first!)
+            broadcast(new LowStockNotification($barang->id, $barang->nama, $barang->stok));
+            
+            // Delete old unread alert for this barang
+            LowStockAlert::where('barang_id', $barang->id)
+                ->where('is_read', false)
+                ->delete();
+            
+            // Create new alert with updated stock
+            LowStockAlert::create([
+                'barang_id' => $barang->id,
+                'barang_nama' => $barang->nama,
+                'stok' => $barang->stok,
+                'message' => "Stok barang '{$barang->nama}' tersisa {$barang->stok} unit!",
+            ]);
+        } else if ($barang->stok > 3) {
+            // Stock is back to normal, clear alerts for this item
+            $this->clearLowStockAlert($barang->id);
+        }
+    }
+
+    /**
+     * Clear low stock alerts for a specific item
+     */
+    private function clearLowStockAlert($barangId)
+    {
+        // Delete unread alerts for this barang
+        LowStockAlert::where('barang_id', $barangId)
+            ->where('is_read', false)
+            ->delete();
+    }
+
     public function index(Request $request)
     {
         $search = $request->input('search');
@@ -80,6 +120,9 @@ class BarangKeluarController extends Controller
                 if ($b) {
                     $b->stok -= $group->count();
                     $b->save();
+                    
+                    // Check if stock is low and create alert
+                    $this->checkAndCreateLowStockAlert($b);
                 }
 
                 foreach ($group as $unit) {
@@ -181,7 +224,14 @@ class BarangKeluarController extends Controller
 
             // 3. POTONG STOK BARU
             foreach ($unitsCheck->groupBy('barang_id') as $bId => $group) {
+                $b = Barang::find($bId);
                 Barang::where('id', $bId)->decrement('stok', $group->count());
+                
+                // Check if stock is low and create alert
+                if ($b) {
+                    $b->stok -= $group->count();
+                    $this->checkAndCreateLowStockAlert($b);
+                }
             }
 
             // Pasangkan ulang unit menggunakan Mass Update
@@ -217,6 +267,9 @@ class BarangKeluarController extends Controller
                     if ($b) {
                         $b->stok += $group->count();
                         $b->save();
+                        
+                        // Check if stock is low and create alert
+                        $this->checkAndCreateLowStockAlert($b);
                     }
                 }
 

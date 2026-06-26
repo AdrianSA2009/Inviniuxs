@@ -12,6 +12,9 @@ use App\Http\Controllers\admin\PenggunaController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\SettingController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Broadcast;
+use App\Models\Barang;
+use App\Models\LowStockAlert;
 
 Route::middleware('guest')->group(function () {
     Route::get('/', [loginController::class, 'index'])->name('login');
@@ -66,5 +69,37 @@ Route::middleware('auth')->group(function () {
         Route::get('/barang', [BarangManajerController::class, 'index'])->name('brgmanajer');
         Route::get('/barang/export', [BarangManajerController::class, 'export'])->name('brgmanajer.export');
     });
+
+    // API endpoint for low stock items
+    Route::get('/api/low-stock-items', function() {
+        $lowStockAlerts = LowStockAlert::where('is_read', false)
+            ->orderBy('created_at', 'desc')
+            ->limit(20)
+            ->get()
+            ->map(function($alert) {
+                return [
+                    'barang_id' => $alert->barang_id,
+                    'barang_nama' => $alert->barang_nama,
+                    'stok' => $alert->stok,
+                    'message' => $alert->message,
+                    'timestamp' => $alert->created_at->toISOString(),
+                ];
+            });
+        
+        return response()->json($lowStockAlerts);
+    })->middleware('auth');
+
+    // API endpoint to mark notifications as read
+    Route::post('/api/low-stock-items/read', function() {
+        LowStockAlert::where('is_read', false)->update([
+            'is_read' => true,
+            'read_at' => now(),
+        ]);
+        
+        return response()->json(['success' => true]);
+    })->middleware('auth');
+
+    // Broadcast authentication route
+    Broadcast::routes(['middleware' => ['auth']]);
 
 });
