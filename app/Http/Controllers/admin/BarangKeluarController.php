@@ -56,6 +56,8 @@ class BarangKeluarController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
 
         $barangKeluar = BarangKeluar::when($search, function ($query, $search) {
             return $query->where(function($q) use ($search) {
@@ -66,7 +68,13 @@ class BarangKeluarController extends Controller
                 $q->where('nama', 'like', "%{$search}%");
             });
         })
-        ->with(['barang.kategori', 'karyawan', 'user', 'unitBarang.barang']) 
+        ->when($dateFrom, function ($query, $dateFrom) {
+            return $query->whereDate('tgl_keluar', '>=', $dateFrom);
+        })
+        ->when($dateTo, function ($query, $dateTo) {
+            return $query->whereDate('tgl_keluar', '<=', $dateTo);
+        })
+        ->with(['barang.kategori', 'karyawan', 'user', 'unitBarang.barang'])
         ->orderBy('tgl_keluar', 'desc')
         ->paginate(10)
         ->withQueryString();

@@ -33,6 +33,14 @@ window.initAjaxListSearch = function (config) {
             url.searchParams.set(filterParam, filterSelect.value);
         }
 
+        ['dateFrom', 'dateTo'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el && el._flatpickr && el._flatpickr.selectedDates.length > 0) {
+                var fp = el._flatpickr;
+                url.searchParams.set(id === 'dateFrom' ? 'date_from' : 'date_to', fp.formatDate(fp.selectedDates[0], 'Y-m-d'));
+            }
+        });
+
         return url;
     }
 
@@ -77,8 +85,24 @@ window.initAjaxListSearch = function (config) {
         }
     }
 
+    // Expose so flatpickr onChange can trigger it
+    window.toggleResetBtn = toggleResetBtn;
+    window.fetchList = function() { fetchList(buildUrl()); };
+
+    function toggleResetBtn() {
+        var btn = document.getElementById('resetBtn');
+        if (!btn) return;
+        var hasSearch = searchInput && searchInput.value.trim();
+        var df = document.getElementById('dateFrom');
+        var dt = document.getElementById('dateTo');
+        var hasDate = (df && df._flatpickr && df._flatpickr.selectedDates.length > 0) ||
+                      (dt && dt._flatpickr && dt._flatpickr.selectedDates.length > 0);
+        btn.classList.toggle('hidden', !hasSearch && !hasDate);
+    }
+
     function triggerSearch() {
         clearTimeout(searchTimeout);
+        toggleResetBtn();
         searchTimeout = setTimeout(() => fetchList(buildUrl()), 300);
     }
 

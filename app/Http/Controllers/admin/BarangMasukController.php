@@ -18,16 +18,26 @@ class BarangMasukController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-    
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
+
         $barangMasuk = BarangMasuk::when($search, function ($query, $search) {
-            return $query->where('kode_transaksi', 'like', "%{$search}%")
-                ->orWhereHas('supplier', function($q) use ($search) {
-                    $q->where('nama', 'like', "%{$search}%");
-                })
-                ->orWhereHas('karyawan', function($q) use ($search) {
-                    $q->where('nama', 'like', "%{$search}%");
+                return $query->where(function ($q) use ($search) {
+                    $q->where('kode_transaksi', 'like', "%{$search}%")
+                        ->orWhereHas('supplier', function($sq) use ($search) {
+                            $sq->where('nama', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('karyawan', function($sq) use ($search) {
+                            $sq->where('nama', 'like', "%{$search}%");
+                        });
                 });
-        })
+            })
+            ->when($dateFrom, function ($query, $dateFrom) {
+                return $query->whereDate('tgl_masuk', '>=', $dateFrom);
+            })
+            ->when($dateTo, function ($query, $dateTo) {
+                return $query->whereDate('tgl_masuk', '<=', $dateTo);
+            })
         ->with(['barang.kategori', 'supplier', 'karyawan', 'unitBarang'])
         ->orderBy('tgl_masuk', 'desc')
         ->paginate(10)

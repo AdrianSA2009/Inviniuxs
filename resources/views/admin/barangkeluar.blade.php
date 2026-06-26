@@ -52,11 +52,33 @@
             </div>
 
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100" data-aos="fade-up" data-aos-delay="100">
-                <div class="relative w-full group">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors">
-                        <i class="fas fa-search text-sm"></i>
-                    </span>
-                    <input id="searchInput" type="text" value="{{ request('search') }}" class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" placeholder="Cari nama transaksi / penerima / PIC...">
+                {{-- Search + Filter inline, sama persis dengan barangmasuk --}}
+                <div class="flex flex-col md:flex-row items-center gap-4">
+                    {{-- Search --}}
+                    <div class="relative w-full md:w-2/3 group">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors pointer-events-none">
+                            <i class="fas fa-search text-sm"></i>
+                        </span>
+                        <input id="searchInput" name="search" type="text" value="{{ request('search') }}" class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" placeholder="Cari kode transaksi / penerima / PIC...">
+                    </div>
+                    {{-- Dari Tanggal --}}
+                    <div class="relative w-full md:w-1/3 group">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors pointer-events-none">
+                            <i class="fas fa-calendar-alt text-sm"></i>
+                        </span>
+                        <input id="dateFrom" name="date_from" type="text" value="{{ request('date_from') }}" class="tgl-filter w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" placeholder="Dari Tanggal">
+                    </div>
+                    {{-- Sampai Tanggal --}}
+                    <div class="relative w-full md:w-1/3 group">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors pointer-events-none">
+                            <i class="fas fa-calendar-alt text-sm"></i>
+                        </span>
+                        <input id="dateTo" name="date_to" type="text" value="{{ request('date_to') }}" class="tgl-filter w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 text-sm" placeholder="Sampai Tanggal">
+                    </div>
+                    {{-- Reset --}}
+                    <a id="resetBtn" href="{{ route('barang-keluar.index') }}" class="w-full md:w-auto px-4 py-2.5 bg-slate-100 text-slate-600 font-semibold rounded-xl hover:bg-slate-200 transition-all text-center {{ request('search') || request('date_from') || request('date_to') ? '' : 'hidden' }}">
+                        <i class="fas fa-sync-alt"></i>
+                    </a>
                 </div>
             </div>
 
@@ -68,7 +90,7 @@
                                 <th class="px-6 py-5 text-[11px] uppercase tracking-widest font-bold text-slate-400">Kode Transaksi</th>
                                 <th class="px-6 py-5 text-[11px] uppercase tracking-widest font-bold text-slate-400">Jumlah</th>
                                 <th class="px-6 py-5 text-[11px] uppercase tracking-widest font-bold text-slate-400 text-center">Penerima</th>
-                                <th class="px-6 py-5 text-[11px] uppercase tracking-widest font-bold text-slate-400 text-center">PIC</th>
+                                <th class="px-6 py-5 text-[11px] uppercase tracking-widest font-bold text-slate-400 text-center">Tanggal Keluar</th>
                                 <th class="px-8 py-5 text-[11px] uppercase tracking-widest font-bold text-slate-400 text-center">Aksi</th>
                             </tr>
                         </thead>
@@ -80,8 +102,8 @@
                                 <td class="px-6 py-6 text-center">
                                     <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">{{ $item->penerima }}</span>
                                 </td>
-                                <td class="px-6 py-6 text-center">
-                                    <span class="px-3 py-1 rounded-full bg-green-50 text-green-600 text-xs font-semibold">{{ $item->karyawan->nama ?? '-' }}</span>
+                                <td class="px-6 py-6 text-sm font-medium text-slate-500 text-center">
+                                    {{ \Carbon\Carbon::parse($item->tgl_keluar)->locale('id')->translatedFormat('d F Y') }}
                                 </td>
                                 <td class="px-8 py-6 text-center">
                                     <div class="flex items-center justify-center gap-2">
@@ -506,6 +528,20 @@
                     locale: 'id',
                     allowInput: true,
                     disableMobile: true,
+                });
+            });
+            document.querySelectorAll('.tgl-filter').forEach(function(input) {
+                flatpickr(input, {
+                    dateFormat: 'Y-m-d',
+                    altInput: true,
+                    altFormat: 'd/m/Y',
+                    locale: 'id',
+                    allowInput: true,
+                    disableMobile: true,
+                    onChange: function() {
+                        if (typeof window.toggleResetBtn === 'function') window.toggleResetBtn();
+                        if (typeof window.fetchList === 'function') window.fetchList();
+                    }
                 });
             });
         }
