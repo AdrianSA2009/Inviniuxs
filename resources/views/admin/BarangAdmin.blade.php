@@ -611,7 +611,7 @@
         function bukaEdit(data) {
             document.getElementById('editBarangId').value = data.id;
             document.getElementById('editNama').value = data.nama || '';
-            document.getElementById('editHarga').value = data.harga || '';
+            document.getElementById('editHarga').value = data.harga ? parseInt(data.harga) : '';
             document.getElementById('editKategori').value = data.kategori_id || '';
             document.getElementById('editDeskripsi').value = data.deskripsi || '';
             document.getElementById('editGambar').value = '';

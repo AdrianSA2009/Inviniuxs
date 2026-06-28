@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
+use App\Events\HasStockAlert;
 use Illuminate\Http\Request;
 use App\Models\Barang;
 use App\Models\BarangMasuk;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
 
 class BarangMasukController extends Controller
 {
+    use HasStockAlert;
     public function index(Request $request)
     {
         $search = $request->input('search');
@@ -124,8 +126,11 @@ class BarangMasukController extends Controller
                 ]);
             }
 
-            $barang->stok += $jumlahUnit;
-            $barang->save();
+            // Sinkronisasi stok dari jumlah unit aktual
+            $b = $this->syncStok($barang->id);
+            if ($b) {
+                $this->checkAndCreateLowStockAlert($b);
+            }
 
             DB::commit();
 
@@ -316,19 +321,18 @@ class BarangMasukController extends Controller
                 $unit->delete();
             }
 
-            if ($oldBarang && $oldBarang->id === $barang->id) {
-                $delta = $newJumlah - $oldJumlah;
-                if ($delta !== 0) {
-                    $oldBarang->stok += $delta;
-                    $oldBarang->save();
+            // Kumpulkan barang_id yang terpengaruh
+            $affectedBarangIds = collect([$barang->id]);
+            if ($oldBarang && $oldBarang->id !== $barang->id) {
+                $affectedBarangIds->push($oldBarang->id);
+            }
+
+            // Sinkronisasi stok dari jumlah unit aktual
+            foreach ($affectedBarangIds->unique() as $bId) {
+                $b = $this->syncStok($bId);
+                if ($b) {
+                    $this->checkAndCreateLowStockAlert($b);
                 }
-            } else {
-                if ($oldBarang) {
-                    $oldBarang->stok -= $oldJumlah;
-                    $oldBarang->save();
-                }
-                $barang->stok += $newJumlah;
-                $barang->save();
             }
 
             DB::commit();
@@ -357,14 +361,16 @@ class BarangMasukController extends Controller
 
         try {
             $barang = $barangMasuk->barang;
-            $jumlahUnit = $barangMasuk->jumlah;
 
             UnitBarang::where('barang_masuk_id', $id)->delete();
             $barangMasuk->delete();
 
+            // Sinkronisasi stok dari jumlah unit aktual
             if ($barang) {
-                $barang->stok -= $jumlahUnit;
-                $barang->save();
+                $b = $this->syncStok($barang->id);
+                if ($b) {
+                    $this->checkAndCreateLowStockAlert($b);
+                }
             }
 
             DB::commit();

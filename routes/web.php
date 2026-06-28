@@ -18,12 +18,14 @@ use App\Models\LowStockAlert;
 
 Route::middleware('guest')->group(function () {
     Route::get('/', [loginController::class, 'index'])->name('login');
-    Route::post('/', [loginController::class, 'authenticate']);
+    Route::post('/', [loginController::class, 'authenticate'])
+    ->middleware('custom-throttle:5,1');
 });
 
 Route::get('/forgot-password', [ForgotPasswordController::class, 'showRequestForm'])->name('password.request');
 Route::post('/forgot-password/send', [ForgotPasswordController::class, 'sendOtp'])->name('password.email');
-Route::post('/forgot-password/verify', [ForgotPasswordController::class, 'verifyOtp'])->name('password.verify');
+Route::post('/forgot-password/verify', [ForgotPasswordController::class, 'verifyOtp'])->name('password.verify')->middleware('throttle:5,1');
+
 
 Route::get('/reset-password', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])->name('password.update');

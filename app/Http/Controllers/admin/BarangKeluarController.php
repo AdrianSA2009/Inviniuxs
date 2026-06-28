@@ -3,55 +3,18 @@
 namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
+use App\Events\HasStockAlert;
 use Illuminate\Http\Request;
 use App\Models\Barang;
 use App\Models\BarangKeluar;
 use App\Models\UnitBarang;
-use App\Models\LowStockAlert;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use App\Events\LowStockNotification;
 
 class BarangKeluarController extends Controller
 {
-    /**
-     * Check if stock is low and create alert
-     */
-    private function checkAndCreateLowStockAlert($barang)
-    {
-        if ($barang->stok <= 3 && $barang->stok > 0) {
-            // Broadcast immediately for real-time notification (happen first!)
-            broadcast(new LowStockNotification($barang->id, $barang->nama, $barang->stok));
-            
-            // Delete old unread alert for this barang
-            LowStockAlert::where('barang_id', $barang->id)
-                ->where('is_read', false)
-                ->delete();
-            
-            // Create new alert with updated stock
-            LowStockAlert::create([
-                'barang_id' => $barang->id,
-                'barang_nama' => $barang->nama,
-                'stok' => $barang->stok,
-                'message' => "Stok barang '{$barang->nama}' tersisa {$barang->stok} unit!",
-            ]);
-        } else if ($barang->stok > 3) {
-            // Stock is back to normal, clear alerts for this item
-            $this->clearLowStockAlert($barang->id);
-        }
-    }
-
-    /**
-     * Clear low stock alerts for a specific item
-     */
-    private function clearLowStockAlert($barangId)
-    {
-        // Delete unread alerts for this barang
-        LowStockAlert::where('barang_id', $barangId)
-            ->where('is_read', false)
-            ->delete();
-    }
+    use HasStockAlert;
 
     public function index(Request $request)
     {
@@ -123,19 +86,20 @@ class BarangKeluarController extends Controller
             $barangKeluar->save();
 
             $groupedUnits = $units->groupBy('barang_id');
-            foreach ($groupedUnits as $barangId => $group) {
-                $b = Barang::find($barangId);
-                if ($b) {
-                    $b->stok -= $group->count();
-                    $b->save();
-                    
-                    // Check if stock is low and create alert
-                    $this->checkAndCreateLowStockAlert($b);
-                }
 
+            // Tandai unit sebagai keluar
+            foreach ($groupedUnits as $barangId => $group) {
                 foreach ($group as $unit) {
                     $unit->barang_keluar_id = $barangKeluar->id;
                     $unit->save();
+                }
+            }
+
+            // Sinkronisasi stok dari jumlah unit aktual
+            foreach ($groupedUnits as $barangId => $group) {
+                $b = $this->syncStok($barangId);
+                if ($b) {
+                    $this->checkAndCreateLowStockAlert($b);
                 }
             }
 
@@ -212,40 +176,39 @@ class BarangKeluarController extends Controller
         DB::beginTransaction();
 
         try {
-            // 1. KEMBALIKAN STOK LAMA 
+            // 1. Kumpulkan barang_id yang terpengaruh (lama + baru)
             $oldUnits = UnitBarang::where('barang_keluar_id', $barangKeluar->id)->get();
-            foreach ($oldUnits->groupBy('barang_id') as $bId => $group) {
-                Barang::where('id', $bId)->increment('stok', $group->count());
-            }
+            $affectedBarangIds = $oldUnits->pluck('barang_id')->unique();
 
-            // Lepaskan unit menggunakan Mass Update (Menghindari bug memori Laravel)
+            // 2. Lepaskan unit lama
             UnitBarang::where('barang_keluar_id', $barangKeluar->id)->update([
                 'barang_keluar_id' => null
             ]);
 
-            // 2. UPDATE TRANSAKSI UTAMA
+            // 3. UPDATE TRANSAKSI UTAMA
             $barangKeluar->penerima = $request->penerima;
             $barangKeluar->tgl_keluar = $request->tgl_keluar;
-            $barangKeluar->barang_id = $unitsCheck->first()->barang_id; 
+            $barangKeluar->barang_id = $unitsCheck->first()->barang_id;
             $barangKeluar->jumlah = count($serialNumbers);
             $barangKeluar->save();
 
-            // 3. POTONG STOK BARU
-            foreach ($unitsCheck->groupBy('barang_id') as $bId => $group) {
-                $b = Barang::find($bId);
-                Barang::where('id', $bId)->decrement('stok', $group->count());
-                
-                // Check if stock is low and create alert
-                if ($b) {
-                    $b->stok -= $group->count();
-                    $this->checkAndCreateLowStockAlert($b);
-                }
-            }
-
-            // Pasangkan ulang unit menggunakan Mass Update
+            // 4. Pasangkan unit baru
             UnitBarang::whereIn('serial_number', $serialNumbers)->update([
                 'barang_keluar_id' => $barangKeluar->id
             ]);
+
+            // 5. Tambahkan barang_id baru ke affected list
+            $affectedBarangIds = $affectedBarangIds
+                ->merge($unitsCheck->pluck('barang_id'))
+                ->unique();
+
+            // 6. Sinkronisasi stok dari jumlah unit aktual
+            foreach ($affectedBarangIds as $bId) {
+                $b = $this->syncStok($bId);
+                if ($b) {
+                    $this->checkAndCreateLowStockAlert($b);
+                }
+            }
 
             DB::commit();
 
@@ -266,32 +229,19 @@ class BarangKeluarController extends Controller
 
         try {
             $units = UnitBarang::where('barang_keluar_id', $id)->get();
+            $affectedBarangIds = $units->pluck('barang_id')->unique();
 
-            if ($units->count() > 0) {
-                // Kembalikan stok berdasarkan jenis barang masing-masing unit yang dihapus
-                $groupedUnits = $units->groupBy('barang_id');
-                foreach ($groupedUnits as $bId => $group) {
-                    $b = Barang::find($bId);
-                    if ($b) {
-                        $b->stok += $group->count();
-                        $b->save();
-                        
-                        // Check if stock is low and create alert
-                        $this->checkAndCreateLowStockAlert($b);
-                    }
-                }
+            // Lepaskan relasi unit
+            foreach ($units as $u) {
+                $u->barang_keluar_id = null;
+                $u->save();
+            }
 
-                // Lepaskan relasi unit
-                foreach ($units as $u) {
-                    $u->barang_keluar_id = null;
-                    $u->save();
-                }
-            } else {
-                // Fallback (jika data unit kosong)
-                $barang = $barangKeluar->barang;
-                if ($barang) {
-                    $barang->stok += $barangKeluar->jumlah;
-                    $barang->save();
+            // Sinkronisasi stok dari jumlah unit aktual
+            foreach ($affectedBarangIds as $bId) {
+                $b = $this->syncStok($bId);
+                if ($b) {
+                    $this->checkAndCreateLowStockAlert($b);
                 }
             }
 

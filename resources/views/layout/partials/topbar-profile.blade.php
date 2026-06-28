@@ -240,22 +240,31 @@
             fetch('/api/low-stock-items')
                 .then(response => response.json())
                 .then(data => {
+                    // Hapus notifikasi localStorage yang sudah tidak ada di DB (stok sudah normal)
+                    const apiBarangIds = new Set(data.map(n => n.barang_id));
+                    const beforeCount = notifications.length;
+                    notifications = notifications.filter(n => apiBarangIds.has(n.barang_id));
+
                     if (data.length > 0) {
                         // Merge with existing notifications, avoid duplicates
                         const existingIds = new Set(notifications.map(n => n.barang_id));
                         const newNotifications = data.filter(n => !existingIds.has(n.barang_id));
-                        
+
                         if (newNotifications.length > 0) {
                             notifications = [...newNotifications, ...notifications];
                             // Keep only last 20 notifications
                             if (notifications.length > 20) notifications = notifications.slice(0, 20);
-                            renderNotifications();
-                            
+
                             // Show popup for new notifications
                             newNotifications.forEach(notif => {
                                 showStockAlertPopup(notif);
                             });
                         }
+                    }
+
+                    // Re-render jika ada perubahan
+                    if (notifications.length !== beforeCount || data.length > 0) {
+                        renderNotifications();
                     }
                 })
                 .catch(error => console.error('Error loading low stock items:', error));

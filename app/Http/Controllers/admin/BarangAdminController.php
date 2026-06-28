@@ -85,8 +85,12 @@ class BarangAdminController extends Controller
     {
         $barangId = $request->input('barang_id');
         $category = $request->input('exportCategory', 'all');
-        
-        $query = Barang::with(['kategori', 'unitBarang'])->whereHas('unitBarang');
+
+        // Hanya ambil field yang dipakai, bukan semua kolom
+        $query = Barang::with([
+            'kategori:id,nama',
+            'unitBarang' => fn($q) => $q->select('id', 'barang_id', 'serial_number'),
+        ])->whereHas('unitBarang');
 
         if ($barangId) {
             $query->where('id', $barangId);
@@ -166,7 +170,7 @@ class BarangAdminController extends Controller
             // Format Harga menjadi Rupiah
             $sheet->getStyle('D2:D' . $highestRow)
                   ->getNumberFormat()
-                  ->setFormatCode('"Rp "#,##0');
+                  ->setFormatCode('"Rp "#.##0');
         }
 
         // Tabel Border
