@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
-use App\Events\HasStockAlert;
+use App\Traits\HasStockAlert;
 use Illuminate\Http\Request;
 use App\Models\Barang;
 use App\Models\BarangMasuk;

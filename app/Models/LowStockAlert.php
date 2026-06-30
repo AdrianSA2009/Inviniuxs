@@ -12,13 +12,6 @@ class LowStockAlert extends Model
         'barang_nama',
         'stok',
         'message',
-        'is_read',
-        'read_at',
-    ];
-
-    protected $casts = [
-        'is_read' => 'boolean',
-        'read_at' => 'datetime',
     ];
 
     public function barang(): BelongsTo

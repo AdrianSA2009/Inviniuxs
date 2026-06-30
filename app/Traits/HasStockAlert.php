@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Events;
+namespace App\Traits;
 
 use App\Models\Barang;
 use App\Models\UnitBarang;
 use App\Models\LowStockAlert;
+use App\Events\LowStockNotification;
 
 trait HasStockAlert
 {
     /**
-     * Sinkronisasi stok dari jumlah unit aktual (bukan counter manual)
+     * Sinkronisasi stok dari jumlah unit aktual
      */
     private function syncStok($barangId)
     {
@@ -32,9 +33,7 @@ trait HasStockAlert
         if ($barang->stok <= 3 && $barang->stok > 0) {
             broadcast(new LowStockNotification($barang->id, $barang->nama, $barang->stok));
 
-            LowStockAlert::where('barang_id', $barang->id)
-                ->where('is_read', false)
-                ->delete();
+            LowStockAlert::where('barang_id', $barang->id)->delete();
 
             LowStockAlert::create([
                 'barang_id' => $barang->id,
@@ -48,12 +47,10 @@ trait HasStockAlert
     }
 
     /**
-     * Hapus alert low stock yang belum dibaca
+     * Hapus alert low stock
      */
     private function clearLowStockAlert($barangId)
     {
-        LowStockAlert::where('barang_id', $barangId)
-            ->where('is_read', false)
-            ->delete();
+        LowStockAlert::where('barang_id', $barangId)->delete();
     }
 }

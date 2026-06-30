@@ -125,7 +125,7 @@
                 notificationBadge.textContent = notifications.length > 9 ? '9+' : notifications.length;
                 
                 notificationList.innerHTML = notifications.map((notif, index) => `
-                    <div class="px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer" onclick="window.location.href='/admin/barang'">
+                    <div class="px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer" onclick="event.preventDefault(); fetch('/api/low-stock-items/'+${notif.barang_id}, {method:'DELETE'}); window.location.href='/admin/barang'">
                         <div class="flex items-start gap-3">
                             <div class="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0">
                                 <i class="fas fa-exclamation-triangle text-sm"></i>
@@ -158,6 +158,11 @@
 
         // Remove single notification
         window.removeNotification = function(index) {
+            const notif = notifications[index];
+            if (notif && notif.barang_id) {
+                fetch('/api/low-stock-items/' + notif.barang_id, { method: 'DELETE' })
+                    .catch(err => console.error('Dismiss error:', err));
+            }
             notifications.splice(index, 1);
             renderNotifications();
         };
@@ -165,6 +170,8 @@
         // Clear all notifications
         if (clearBtn) {
             clearBtn.addEventListener('click', function() {
+                fetch('/api/low-stock-items', { method: 'DELETE' })
+                    .catch(err => console.error('Dismiss all error:', err));
                 notifications = [];
                 renderNotifications();
             });

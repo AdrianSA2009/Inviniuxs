@@ -10,7 +10,7 @@ use Illuminate\Queue\SerializesModels;
 
 class LowStockNotification implements ShouldBroadcastNow
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable, InteractsWithSockets;
 
     public $barangId;
     public $barangNama;
