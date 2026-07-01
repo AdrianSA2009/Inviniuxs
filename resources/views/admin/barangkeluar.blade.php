@@ -857,7 +857,7 @@
             showModal('modalDelete');
         }
 
-        // ── Barcode Scanner (html5-qrcode) ──────────────────────────────────
+        // Barcode Scanner (html5-qrcode)
         let html5QrCode = null;
         let isScanning = false;
 
@@ -868,7 +868,6 @@
             scanStatus.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i><span>Mengarahkan kamera ke barcode...</span>';
 
             if (html5QrCode && isScanning) {
-                // already running
                 return;
             }
 
@@ -877,7 +876,6 @@
             const config = {
                 fps: 15,
                 qrbox: function(viewfinderWidth, viewfinderHeight) {
-                    // Use a wide rectangular scanning area optimized for barcodes
                     const w = viewfinderWidth;
                     const h = viewfinderHeight;
                     const boxWidth = Math.floor(w * 0.85);
@@ -899,7 +897,6 @@
                 ]
             };
 
-            // Callback when barcode is detected
             function onScanSuccess(decodedText, decodedResult) {
                 const snInput = document.getElementById('input-sn');
                 const normalized = normalizeSerial(decodedText);
@@ -926,7 +923,6 @@
             }
 
             function onScanError(errorMessage) {
-                // Scan error — ignore, keep scanning
             }
 
             function startCameraWithId(deviceId, cfg, statusEl) {
@@ -938,7 +934,6 @@
                 ).then(function() {
                     isScanning = true;
                 }).catch(function(err) {
-                    // Fallback to user-facing camera
                     startCameraWithConstraints({ facingMode: "user" }, cfg, statusEl);
                 });
             }
@@ -957,7 +952,6 @@
                 });
             }
 
-            // Try to pick the best available camera (prefer rear/environment on phones, default on laptops)
             Html5Qrcode.getCameras().then(function(devices) {
                 if (devices && devices.length) {
                     var cameraId = devices[0].id;
@@ -1006,7 +1000,6 @@
             stopScanner();
         });
 
-        // Stop scanner when modalInputUnit is closed
         const originalHideModal = hideModal;
         hideModal = function(id) {
             if (id === 'modalInputUnit' && isScanning) {
@@ -1015,7 +1008,6 @@
             originalHideModal(id);
         };
 
-        // Also stop scanner when closing via close/cancel buttons
         document.getElementById('btnCloseInputUnit').addEventListener('click', function() {
             if (isScanning) stopScanner();
         });

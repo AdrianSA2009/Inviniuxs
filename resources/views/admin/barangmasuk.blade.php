@@ -982,7 +982,6 @@
                     return;
                 }
 
-                // Check if nama barang exists in a different kategori
                 const kategoriId = getSelectedKategoriId();
                 const nameConflict = await checkBarangNameConflict(nama, kategoriId);
                 if (nameConflict.exists) {
@@ -1040,7 +1039,6 @@
             }
         }
 
-        // ── Toast notifikasi ───────────────────────────────────────────────
         const Toast = Swal.mixin({
             toast: true,
             position: 'top-end',
@@ -1053,7 +1051,7 @@
             }
         });
 
-        // ── Barcode Scanner (html5-qrcode) ──────────────────────────────────
+        // Barcode Scanner (html5-qrcode)
         let html5QrCode = null;
         let isScanning = false;
 
@@ -1064,7 +1062,6 @@
             scanStatus.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i><span>Mengarahkan kamera ke barcode...</span>';
 
             if (html5QrCode && isScanning) {
-                // already running
                 return;
             }
 
@@ -1073,7 +1070,6 @@
             const config = {
                 fps: 15,
                 qrbox: function(viewfinderWidth, viewfinderHeight) {
-                    // Use a wide rectangular scanning area optimized for barcodes
                     const w = viewfinderWidth;
                     const h = viewfinderHeight;
                     const boxWidth = Math.floor(w * 0.85);
@@ -1095,7 +1091,6 @@
                 ]
             };
 
-            // Callback when barcode is detected
             function onScanSuccess(decodedText, decodedResult) {
                 const snInput = document.getElementById('input-sn');
                 const normalized = normalizeSerial(decodedText);
@@ -1122,7 +1117,6 @@
             }
 
             function onScanError(errorMessage) {
-                // Scan error — ignore, keep scanning
             }
 
             function startCameraWithId(deviceId, cfg, statusEl) {
@@ -1134,7 +1128,6 @@
                 ).then(function() {
                     isScanning = true;
                 }).catch(function(err) {
-                    // Fallback to user-facing camera
                     startCameraWithConstraints({ facingMode: "user" }, cfg, statusEl);
                 });
             }
@@ -1153,7 +1146,6 @@
                 });
             }
 
-            // Try to pick the best available camera (prefer rear/environment on phones, default on laptops)
             Html5Qrcode.getCameras().then(function(devices) {
                 if (devices && devices.length) {
                     var cameraId = devices[0].id;
@@ -1202,7 +1194,6 @@
             stopScanner();
         });
 
-        // Stop scanner when modalInputUnit is closed
         const originalHideModal = hideModal;
         hideModal = function(id) {
             if (id === 'modalInputUnit' && isScanning) {
@@ -1211,7 +1202,6 @@
             originalHideModal(id);
         };
 
-        // Also stop scanner when closing via close/cancel buttons
         document.getElementById('btnCloseInputUnit').addEventListener('click', function() {
             if (isScanning) stopScanner();
         });
@@ -1219,12 +1209,10 @@
             if (isScanning) stopScanner();
         });
 
-        // ── Kategori change guard ─────────────────────────────────────────
         async function guardKategoriChange(selectEl, getUnitListFn) {
             const units = getUnitListFn();
             if (!units || units.length === 0) return;
 
-            // All units in one transaction share the same nama — use the first
             const namaBarang = units[0].nama || currentEditNamaBarang;
             if (!namaBarang) return;
 
@@ -1246,7 +1234,6 @@
         const addKategoriEl = document.getElementById('add-kategori');
         const editKategoriEl = document.getElementById('edit-kategori');
 
-        // Store initial value on focus so we can revert
         addKategoriEl.addEventListener('focus', function() { this.dataset.prevValue = this.value; });
         editKategoriEl.addEventListener('focus', function() { this.dataset.prevValue = this.value; });
 

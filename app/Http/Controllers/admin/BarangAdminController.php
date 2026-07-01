@@ -86,7 +86,6 @@ class BarangAdminController extends Controller
         $barangId = $request->input('barang_id');
         $category = $request->input('exportCategory', 'all');
 
-        // Hanya ambil field yang dipakai, bukan semua kolom
         $query = Barang::with([
             'kategori:id,nama',
             'unitBarang' => fn($q) => $q->select('id', 'barang_id', 'serial_number'),
@@ -96,7 +95,6 @@ class BarangAdminController extends Controller
             $query->where('id', $barangId);
             $includeCategory = true;
         } else {
-            // Export multiple barang by category
             if ($category !== 'all') {
                 $query->where('kategori_id', $category);
             }
